@@ -1,15 +1,15 @@
-### discord-ext-menus
+# nextcord-ext-menus
 
-An experimental extension menu that makes working with reaction menus a bit easier.
+## About 
 
-**There are no front-facing docs for this and it's not on PyPI. As this is meant to be a repository for testing**
+A Nextcord extension that makes working with reaction menus a bit easier.
 
 ## Installing
 
-Installing is done purely via git:
+Python **>=3.6.0** is required.
 
-```py
-python -m pip install -U git+https://github.com/Rapptz/discord-ext-menus
+```py 
+pip install --upgrade nextcord-ext-menus
 ```
 
 ## Getting Started
@@ -19,7 +19,7 @@ To whet your appetite, the following examples show the fundamentals on how to cr
 The first example shows a basic menu that has a stop button and two reply buttons:
 
 ```py
-from discord.ext import menus
+from nextcord.ext import menus
 
 class MyMenu(menus.Menu):
     async def send_initial_message(self, ctx, channel):
@@ -52,7 +52,7 @@ If an error happens then an exception of type `menus.MenuError` is raised.
 This second example shows a confirmation menu and how we can compose it and use it later:
 
 ```py
-from discord.ext import menus
+from nextcord.ext import menus
 
 class Confirm(menus.Menu):
     def __init__(self, msg):
@@ -105,7 +105,7 @@ None of these page sources deal with formatting of data, leaving that up to you.
 For the sake of example, here's a basic list source that is paginated:
 
 ```py
-from discord.ext import menus
+from nextcord.ext import menus
 
 class MySource(menus.ListPageSource):
     def __init__(self, data):
@@ -125,7 +125,7 @@ The `format_page` can return either a `str` for content, `discord.Embed` for an 
 Some more examples using `GroupByPageSource`:
 
 ```py
-from discord.ext import menus
+from nextcord.ext import menus
 
 class Test:
     def __init__(self, key, value):
@@ -150,7 +150,7 @@ await pages.start(ctx)
 Another one showing `AsyncIteratorPageSource`:
 
 ```py
-from discord.ext import menus
+from nextcord.ext import menus
 
 class Test:
     def __init__(self, value):
@@ -174,3 +174,8 @@ class Source(menus.AsyncIteratorPageSource):
 pages = menus.MenuPages(source=Source(), clear_reactions_after=True)
 await pages.start(ctx)
 ```
+
+## License
+
+Copyright (c) 2021 The Nextcord Developers  
+Copyright (c) 2015-2020 Danny Y. (Rapptz)

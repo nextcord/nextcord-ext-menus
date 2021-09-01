@@ -1,63 +1,42 @@
-# -*- coding: utf-8 -*-
-
-"""
-The MIT License (MIT)
-
-Copyright (c) 2015-2019 Rapptz
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
-"""
-
 import asyncio
-import discord
+import nextcord
 
 import itertools
 import inspect
-import bisect
 import logging
 import re
 from collections import OrderedDict, namedtuple
 
 # Needed for the setup.py script
-__version__ = '1.0.0-a'
+__version__ = '1.0.0'
 
-# consistency with the `discord` namespaced logging
+# consistency with the `nextcord` namespaced logging
 log = logging.getLogger(__name__)
+
 
 class MenuError(Exception):
     pass
+
 
 class CannotEmbedLinks(MenuError):
     def __init__(self):
         super().__init__('Bot does not have embed links permission in this channel.')
 
+
 class CannotSendMessages(MenuError):
     def __init__(self):
         super().__init__('Bot cannot send messages in this channel.')
+
 
 class CannotAddReactions(MenuError):
     def __init__(self):
         super().__init__('Bot cannot add reactions in this channel.')
 
+
 class CannotReadMessageHistory(MenuError):
     def __init__(self):
         super().__init__('Bot does not have Read Message History permissions in this channel.')
+
 
 class Position:
     __slots__ = ('number', 'bucket')
@@ -93,20 +72,26 @@ class Position:
     def __repr__(self):
         return '<{0.__class__.__name__}: {0.number}>'.format(self)
 
+
 class Last(Position):
     __slots__ = ()
+
     def __init__(self, number=0):
         super().__init__(number, bucket=2)
 
+
 class First(Position):
     __slots__ = ()
+
     def __init__(self, number=0):
         super().__init__(number, bucket=0)
 
+
 _custom_emoji = re.compile(r'<?(?P<animated>a)?:?(?P<name>[A-Za-z0-9\_]+):(?P<id>[0-9]{13,20})>?')
 
+
 def _cast_emoji(obj, *, _custom_emoji=_custom_emoji):
-    if isinstance(obj, discord.PartialEmoji):
+    if isinstance(obj, nextcord.PartialEmoji):
         return obj
 
     obj = str(obj)
@@ -116,8 +101,9 @@ def _cast_emoji(obj, *, _custom_emoji=_custom_emoji):
         animated = bool(groups['animated'])
         emoji_id = int(groups['id'])
         name = groups['name']
-        return discord.PartialEmoji(name=name, animated=animated, id=emoji_id)
-    return discord.PartialEmoji(name=obj, id=None, animated=False)
+        return nextcord.PartialEmoji(name=name, animated=animated, id=emoji_id)
+    return nextcord.PartialEmoji(name=obj, id=None, animated=False)
+
 
 class Button:
     """Represents a reaction-style button for the :class:`Menu`.
@@ -127,13 +113,13 @@ class Button:
     :func:`button`.
 
     The action must have both a ``self`` and a ``payload`` parameter
-    of type :class:`discord.RawReactionActionEvent`.
+    of type :class:`nextcord.RawReactionActionEvent`.
 
     Attributes
     ------------
     emoji: :class:`discord.PartialEmoji`
         The emoji to use as the button. Note that passing a string will
-        transform it into a :class:`discord.PartialEmoji`.
+        transform it into a :class:`nextcord.PartialEmoji`.
     action
         A coroutine that is called when the button is pressed.
     skip_if: Optional[Callable[[:class:`Menu`], :class:`bool`]]
@@ -212,11 +198,12 @@ class Button:
     def is_valid(self, menu):
         return not self.skip_if(menu)
 
+
 def button(emoji, **kwargs):
     """Denotes a method to be button for the :class:`Menu`.
 
     The methods being wrapped must have both a ``self`` and a ``payload``
-    parameter of type :class:`discord.RawReactionActionEvent`.
+    parameter of type :class:`nextcord.RawReactionActionEvent`.
 
     The keyword arguments are forwarded to the :class:`Button` constructor.
 
@@ -239,7 +226,7 @@ def button(emoji, **kwargs):
 
     Parameters
     ------------
-    emoji: Union[:class:`str`, :class:`discord.PartialEmoji`]
+    emoji: Union[:class:`str`, :class:`nextcord.PartialEmoji`]
         The emoji to use for the button.
     """
     def decorator(func):
@@ -248,12 +235,15 @@ def button(emoji, **kwargs):
         return func
     return decorator
 
+
 class _MenuMeta(type):
+    # noinspection PyMethodParameters
     @classmethod
     def __prepare__(cls, name, bases, **kwargs):
         # This is needed to maintain member order for the buttons
         return OrderedDict()
 
+    # noinspection PyMethodParameters
     def __new__(cls, name, bases, attrs, **kwargs):
         buttons = []
         new_cls = super().__new__(cls, name, bases, attrs)
@@ -288,12 +278,13 @@ class _MenuMeta(type):
             buttons[emoji] = Button(emoji, func, **func.__menu_button_kwargs__)
         return buttons
 
+
 class Menu(metaclass=_MenuMeta):
     r"""An interface that allows handling menus by using reactions as buttons.
 
     Buttons should be marked with the :func:`button` decorator. Please note that
     this expects the methods to have a single parameter, the ``payload``. This
-    ``payload`` is of type :class:`discord.RawReactionActionEvent`.
+    ``payload`` is of type :class:`nextcord.RawReactionActionEvent`.
 
     Attributes
     ------------
@@ -314,7 +305,7 @@ class Menu(metaclass=_MenuMeta):
     bot: Optional[:class:`commands.Bot`]
         The bot that is running this pagination session or ``None`` if it hasn't
         been started yet.
-    message: Optional[:class:`discord.Message`]
+    message: Optional[:class:`nextcord.Message`]
         The message that has been sent for handling the menu. This is the returned
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
@@ -338,7 +329,7 @@ class Menu(metaclass=_MenuMeta):
         self._lock = asyncio.Lock()
         self._event = asyncio.Event()
 
-    @discord.utils.cached_property
+    @nextcord.utils.cached_property
     def buttons(self):
         """Retrieves the buttons that are to be used for this menu session.
 
@@ -387,7 +378,7 @@ class Menu(metaclass=_MenuMeta):
         ---------
         MenuError
             Tried to use ``react`` when the menu had not been started.
-        discord.HTTPException
+        nextcord.HTTPException
             Adding the reaction failed.
         """
 
@@ -399,7 +390,7 @@ class Menu(metaclass=_MenuMeta):
                     # Add the reaction
                     try:
                         await self.message.add_reaction(button.emoji)
-                    except discord.HTTPException:
+                    except nextcord.HTTPException:
                         raise
                     else:
                         # Update the cache to have the value
@@ -430,7 +421,7 @@ class Menu(metaclass=_MenuMeta):
         ---------
         MenuError
             Tried to use ``react`` when the menu had not been started.
-        discord.HTTPException
+        nextcord.HTTPException
             Removing the reaction failed.
         """
 
@@ -475,7 +466,7 @@ class Menu(metaclass=_MenuMeta):
         ---------
         MenuError
             Tried to use ``react`` when the menu had not been started.
-        discord.HTTPException
+        nextcord.HTTPException
             Clearing the reactions failed.
         """
 
@@ -505,8 +496,10 @@ class Menu(metaclass=_MenuMeta):
                         await self.message.remove_reaction(reaction, self.__me)
 
                 return wrapped()
+
             async def dummy():
                 raise MenuError('Menu has not been started yet')
+
             return dummy()
 
     def should_add_reactions(self):
@@ -529,7 +522,7 @@ class Menu(metaclass=_MenuMeta):
 
     def reaction_check(self, payload):
         """The function that is used to check whether the payload should be processed.
-        This is passed to :meth:`discord.ext.commands.Bot.wait_for <Bot.wait_for>`.
+        This is passed to :meth:`nextcord.ext.commands.Bot.wait_for <Bot.wait_for>`.
 
         There should be no reason to override this function for most users.
 
@@ -616,7 +609,7 @@ class Menu(metaclass=_MenuMeta):
                     for button_emoji in self.buttons:
                         try:
                             await self.message.remove_reaction(button_emoji, self.__me)
-                        except discord.HTTPException:
+                        except nextcord.HTTPException:
                             continue
             except Exception:
                 pass
@@ -682,7 +675,7 @@ class Menu(metaclass=_MenuMeta):
         -------
         MenuError
             An error happened when verifying permissions.
-        discord.HTTPException
+        nextcord.HTTPException
             Adding a reaction failed.
         """
 
@@ -698,7 +691,7 @@ class Menu(metaclass=_MenuMeta):
         channel = channel or ctx.channel
         me = channel.guild.me if hasattr(channel, 'guild') else ctx.bot.user
         permissions = channel.permissions_for(me)
-        self.__me = discord.Object(id=me.id)
+        self.__me = nextcord.Object(id=me.id)
         self._verify_permissions(ctx, channel, permissions)
         self._event.clear()
         msg = self.message
@@ -767,6 +760,7 @@ class Menu(metaclass=_MenuMeta):
         for task in self.__tasks:
             task.cancel()
         self.__tasks.clear()
+
 
 class PageSource:
     """An interface representing a menu page's data source for the actual menu page.
@@ -862,16 +856,16 @@ class PageSource:
         This method must return one of the following types.
 
         If this method returns a ``str`` then it is interpreted as returning
-        the ``content`` keyword argument in :meth:`discord.Message.edit`
-        and :meth:`discord.abc.Messageable.send`.
+        the ``content`` keyword argument in :meth:`nextcord.Message.edit`
+        and :meth:`nextcord.abc.Messageable.send`.
 
-        If this method returns a :class:`discord.Embed` then it is interpreted
-        as returning the ``embed`` keyword argument in :meth:`discord.Message.edit`
-        and :meth:`discord.abc.Messageable.send`.
+        If this method returns a :class:`nextcord.Embed` then it is interpreted
+        as returning the ``embed`` keyword argument in :meth:`nextcord.Message.edit`
+        and :meth:`nextcord.abc.Messageable.send`.
 
         If this method returns a ``dict`` then it is interpreted as the
-        keyword-arguments that are used in both :meth:`discord.Message.edit`
-        and :meth:`discord.abc.Messageable.send`. The two of interest are
+        keyword-arguments that are used in both :meth:`nextcord.Message.edit`
+        and :meth:`nextcord.abc.Messageable.send`. The two of interest are
         ``embed`` and ``content``.
 
         Parameters
@@ -883,10 +877,11 @@ class PageSource:
 
         Returns
         ---------
-        Union[:class:`str`, :class:`discord.Embed`, :class:`dict`]
+        Union[:class:`str`, :class:`nextcord.Embed`, :class:`dict`]
             See above.
         """
         raise NotImplementedError
+
 
 class MenuPages(Menu):
     """A special type of Menu dedicated to pagination.
@@ -935,12 +930,12 @@ class MenuPages(Menu):
         return self._source.is_paginating()
 
     async def _get_kwargs_from_page(self, page):
-        value = await discord.utils.maybe_coroutine(self._source.format_page, self, page)
+        value = await nextcord.utils.maybe_coroutine(self._source.format_page, self, page)
         if isinstance(value, dict):
             return value
         elif isinstance(value, str):
             return { 'content': value, 'embed': None }
-        elif isinstance(value, discord.Embed):
+        elif isinstance(value, nextcord.Embed):
             return { 'embed': value, 'content': None }
 
     async def show_page(self, page_number):
@@ -1015,6 +1010,7 @@ class MenuPages(Menu):
         """stops the pagination session."""
         self.stop()
 
+
 class ListPageSource(PageSource):
     """A data source for a sequence of items.
 
@@ -1065,7 +1061,9 @@ class ListPageSource(PageSource):
             base = page_number * self.per_page
             return self.entries[base:base + self.per_page]
 
+
 _GroupByEntry = namedtuple('_GroupByEntry', 'key items')
+
 
 class GroupByPageSource(ListPageSource):
     """A data source for grouped by sequence of items.
@@ -1128,6 +1126,7 @@ class GroupByPageSource(ListPageSource):
         """
         raise NotImplementedError
 
+
 def _aiter(obj, *, _isasync=inspect.iscoroutinefunction):
     cls = obj.__class__
     try:
@@ -1139,6 +1138,7 @@ def _aiter(obj, *, _isasync=inspect.iscoroutinefunction):
     if _isasync(async_iter):
         raise TypeError('{0.__name__!r} object is not an async iterable'.format(cls))
     return async_iter
+
 
 class AsyncIteratorPageSource(PageSource):
     """A data source for data backed by an asynchronous iterator.
