@@ -1,8 +1,6 @@
 # nextcord-ext-menus
 
-# About 
-
-A Nextcord extension that makes working with reaction menus a bit easier.
+A Nextcord extension that makes working with reaction menus and button component menus a bit easier.
 
 # Installing
 
@@ -179,7 +177,7 @@ await pages.start(ctx)
 
 ## Button Component Menus
 
-The first example shows a basic menu that has a stop button and two reply reactions:
+Button implementation of a basic menu that has a stop button and two reply reactions:
 
 ```py
 import nextcord
@@ -209,6 +207,10 @@ class MyMenu(menus.Menu, nextcord.ui.View):
 Instantiation is the same as above.
 
 ### Pagination
+
+A `ButtonMenuPages` class is provided for pagination with button components.
+
+`ButtonMenuPages` works the same way as the `MenuPages` class found above, but with button components instead of reactions.
 
 `MySource` is the same as defined above but instantiated with:
 
