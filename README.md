@@ -43,8 +43,7 @@ Now, within a command we just instantiate it and we start it like so:
 ```py
 @bot.command()
 async def menu_example(ctx):
-    m = MyMenu()
-    await m.start(ctx)
+    await MyMenu().start(ctx)
 ```
 
 If an error happens then an exception of type `menus.MenuError` is raised.
@@ -183,7 +182,7 @@ Button implementation of a basic menu that has a stop button and two reply react
 import nextcord
 from nextcord.ext import menus
 
-class MyMenu(menus.Menu, nextcord.ui.View):
+class MyButtonMenu(menus.Menu, nextcord.ui.View):
     def __init__(self):
         menus.Menu.__init__(self)
         nextcord.ui.View.__init__(self)
@@ -206,13 +205,17 @@ class MyMenu(menus.Menu, nextcord.ui.View):
 
 Instantiation is the same as above.
 
+```py
+await MyButtonMenu().start(ctx)
+```
+
 ### Pagination
 
 A `ButtonMenuPages` class is provided for pagination with button components.
 
 `ButtonMenuPages` works the same way as the `MenuPages` class found above, but with button components instead of reactions.
 
-`MySource` is the same as defined above but instantiated with:
+`MySource` is the same as defined above, but instantiated with:
 
 ```py
 pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
