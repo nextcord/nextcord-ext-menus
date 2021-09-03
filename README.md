@@ -115,7 +115,7 @@ class MySource(menus.ListPageSource):
         return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 
 # somewhere else:
-pages = menus.MenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
+pages = menus.MenuPages(source=MySource(range(1, 100)))
 await pages.start(ctx)
 ```
 

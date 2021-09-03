@@ -506,7 +506,15 @@ class Menu(metaclass=_MenuMeta):
 
     def should_add_reactions(self):
         """:class:`bool`: Whether to add reactions to this menu session."""
-        return len(self.buttons)
+        return len(self.buttons) > 0
+
+    def should_add_buttons(self):
+        """:class:`bool`: Whether to add button components to this menu session."""
+        return hasattr(self, 'children') and len(self.children) > 0
+
+    def should_add_reactions_or_buttons(self):
+        """:class:`bool`: Whether to add reactions or buttons to this menu session."""
+        return self.should_add_reactions() or self.should_add_buttons()
 
     def _verify_permissions(self, ctx, channel, permissions):
         if not permissions.send_messages:
@@ -700,7 +708,7 @@ class Menu(metaclass=_MenuMeta):
         if msg is None:
             self.message = msg = await self.send_initial_message(ctx, channel)
 
-        if self.should_add_reactions():
+        if self.should_add_reactions_or_buttons():
             # Start the task first so we can listen to reactions before doing anything
             for task in self.__tasks:
                 task.cancel()
@@ -1144,11 +1152,12 @@ class ButtonMenuPages(MenuPagesBase):
         Disables buttons that are unavailable to be pressed.
         """
         buttons: List[MenuPaginationButton] = self.children
+        max_pages = self._source.get_max_pages()
         for button in buttons:
             if button.emoji.name in (self.FIRST_PAGE, self.PREVIOUS_PAGE):
                 button.disabled = self.current_page == 0
-            elif button.emoji.name in (self.LAST_PAGE, self.NEXT_PAGE):
-                button.disabled = self.current_page == self._source.get_max_pages() - 1
+            elif max_pages and button.emoji.name in (self.LAST_PAGE, self.NEXT_PAGE):
+                button.disabled = self.current_page == max_pages - 1
 
 
 
