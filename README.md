@@ -1,10 +1,10 @@
 # nextcord-ext-menus
 
-## About 
+# About 
 
 A Nextcord extension that makes working with reaction menus a bit easier.
 
-## Installing
+# Installing
 
 Python **>=3.6.0** is required.
 
@@ -12,7 +12,9 @@ Python **>=3.6.0** is required.
 pip install --upgrade nextcord-ext-menus
 ```
 
-## Getting Started
+# Getting Started
+
+## Reaction Menus
 
 To whet your appetite, the following examples show the fundamentals on how to create menus.
 
@@ -174,6 +176,37 @@ class Source(menus.AsyncIteratorPageSource):
 pages = menus.MenuPages(source=Source(), clear_reactions_after=True)
 await pages.start(ctx)
 ```
+
+## Button Component Menus
+
+The first example shows a basic menu that has a stop button and two reply reactions:
+
+```py
+import nextcord
+from nextcord.ext import menus
+
+class MyMenu(menus.Menu, nextcord.ui.View):
+    def __init__(self):
+        menus.Menu.__init__(self)
+        nextcord.ui.View.__init__(self)
+
+    async def send_initial_message(self, ctx, channel):
+        self._message = await channel.send(f'Hello {ctx.author}', view=self)
+
+    @nextcord.ui.button(emoji="\N{THUMBS UP SIGN}")
+    async def on_thumbs_up(self, button, interaction):
+        await self._message.edit(content=f"Thanks {interaction.user}!")
+
+    @nextcord.ui.button(emoji="\N{THUMBS DOWN SIGN}")
+    async def on_thumbs_down(self, button, interaction):
+        await self._message.edit(content=f"That's not nice {interaction.user}...")
+
+    @nextcord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}\ufe0f")
+    async def on_stop(self, button, interaction):
+        nextcord.ui.View.stop(self)
+```
+
+Instantiation is the same as above.
 
 ## License
 
