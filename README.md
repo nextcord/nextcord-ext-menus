@@ -188,15 +188,15 @@ class MyButtonMenu(menus.Menu, nextcord.ui.View):
         nextcord.ui.View.__init__(self)
 
     async def send_initial_message(self, ctx, channel):
-        self._message = await channel.send(f'Hello {ctx.author}', view=self)
+        return await channel.send(f'Hello {ctx.author}', view=self)
 
     @nextcord.ui.button(emoji="\N{THUMBS UP SIGN}")
     async def on_thumbs_up(self, button, interaction):
-        await self._message.edit(content=f"Thanks {interaction.user}!")
+        await self.message.edit(content=f"Thanks {interaction.user}!")
 
     @nextcord.ui.button(emoji="\N{THUMBS DOWN SIGN}")
     async def on_thumbs_down(self, button, interaction):
-        await self._message.edit(content=f"That's not nice {interaction.user}...")
+        await self.message.edit(content=f"That's not nice {interaction.user}...")
 
     @nextcord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, button, interaction):
