@@ -208,6 +208,15 @@ class MyMenu(menus.Menu, nextcord.ui.View):
 
 Instantiation is the same as above.
 
+### Pagination
+
+`MySource` is the same as defined above but instantiated with:
+
+```py
+pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
+await pages.start(ctx)
+```
+
 ## License
 
 Copyright (c) 2021 The Nextcord Developers  
