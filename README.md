@@ -212,20 +212,7 @@ A `ButtonMenuPages` class is provided for pagination with button components.
 
 `ButtonMenuPages` works the same way as the `MenuPages` class found above, but with button components instead of reactions.
 
-Here is a basic list source for button pagination:
-
-```py
-class MySource(menus.ListPageSource, nextcord.ui.View):
-    def __init__(self, data):
-        menus.ListPageSource.__init__(self, data, per_page=4)
-        nextcord.ui.View.__init__(self)
-
-    async def format_page(self, menu, entries):
-        offset = menu.current_page * self.per_page
-        return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
-```
-
-The menu is instantiated with:
+`MySource` is the same as defined above but instantiated with:
 
 ```py
 pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
