@@ -176,17 +176,17 @@ await pages.start(ctx)
 
 ## Button Component Menus
 
-Button implementation of a basic menu that has a stop button and two reply reactions:
+Here is a button implementation of a basic menu that has a stop button and two reply reactions. Note that the `ButtonMenu` class is used instead of `Menu` in order to make it a `View`.
+
+`ButtonMenu` is a subclass of `Menu` and it therefore has all the same attributes and methods.
+
+Also note that `ButtonMenu.stop()` is a coroutine and needs to be awaited.
 
 ```py
 import nextcord
 from nextcord.ext import menus
 
-class MyButtonMenu(menus.Menu, nextcord.ui.View):
-    def __init__(self):
-        menus.Menu.__init__(self)
-        nextcord.ui.View.__init__(self)
-
+class MyButtonMenu(menus.ButtonMenu):
     async def send_initial_message(self, ctx, channel):
         return await channel.send(f'Hello {ctx.author}', view=self)
 
@@ -200,7 +200,7 @@ class MyButtonMenu(menus.Menu, nextcord.ui.View):
 
     @nextcord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, button, interaction):
-        nextcord.ui.View.stop(self)
+        await self.stop()
 ```
 
 Instantiation is the same as above.
@@ -215,7 +215,7 @@ A `ButtonMenuPages` class is provided for pagination with button components.
 
 `ButtonMenuPages` works the same way as the `MenuPages` class found above, but with button components instead of reactions.
 
-`MySource` is the same as defined above, but instantiated with:
+`MySource` is the same as defined above, but the menu is instantiated with:
 
 ```py
 pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)

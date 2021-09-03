@@ -14,6 +14,7 @@ __version__ = '1.0.0'
 # consistency with the `nextcord` namespaced logging
 log = logging.getLogger(__name__)
 
+DEFAULT_TIMEOUT = 180.0
 
 class MenuError(Exception):
     pass
@@ -312,7 +313,7 @@ class Menu(metaclass=_MenuMeta):
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
         message you want to attach a menu to.
     """
-    def __init__(self, *, timeout=180.0, delete_message_after=False,
+    def __init__(self, *, timeout=DEFAULT_TIMEOUT, delete_message_after=False,
                           clear_reactions_after=False, check_embeds=False, message=None):
 
         self.timeout = timeout
@@ -763,6 +764,30 @@ class Menu(metaclass=_MenuMeta):
         self.__tasks.clear()
 
 
+class ButtonMenu(Menu, nextcord.ui.View):
+    r"""An interface that allows handling menus by using button interaction components.
+
+    Buttons should be marked with the :func:`nextcord.ui.button` decorator. Please note that
+    this expects the methods to have two parameters, the ``button`` and the ``interaction``.
+    The ``button`` is of type :class:`nextcord.ui.Button`.
+    The ``interaction`` is of type :class:`nextcord.Interaction`.
+    """
+    def __init__(self, timeout=DEFAULT_TIMEOUT, *args, **kwargs):
+        Menu.__init__(self, timeout=timeout, *args, **kwargs)
+        nextcord.ui.View.__init__(self, timeout=timeout)
+
+    async def stop(self):
+        """Stops the internal loop and view interactions."""
+        # disable the buttons
+        for child in self.children:
+            child.disabled = True
+        await self.message.edit(view=self)
+        # stop the menu loop
+        Menu.stop(self)
+        # stop view interactions
+        nextcord.ui.View.stop(self)
+
+
 class PageSource:
     """An interface representing a menu page's data source for the actual menu page.
 
@@ -1082,7 +1107,7 @@ class ButtonMenuPages(MenuPagesBase, nextcord.ui.View):
         The current page that we are in. Zero-indexed
         between [0, :attr:`PageSource.max_pages`).
     """
-    def __init__(self, source, timeout = 180.0, **kwargs):
+    def __init__(self, source, timeout=DEFAULT_TIMEOUT, **kwargs):
         MenuPagesBase.__init__(self, source, **kwargs)
         nextcord.ui.View.__init__(self, timeout=timeout)
         skip_double_triangle_buttons = self._skip_double_triangle_buttons()
