@@ -281,7 +281,7 @@ class _MenuMeta(type):
         return buttons
 
 
-class Menu(metaclass=_MenuMeta):
+class Menu(nextcord.ui.View, metaclass=_MenuMeta):
     r"""An interface that allows handling menus by using reactions as buttons.
 
     Buttons should be marked with the :func:`button` decorator. Please note that
@@ -316,6 +316,7 @@ class Menu(metaclass=_MenuMeta):
     def __init__(self, *, timeout=DEFAULT_TIMEOUT, delete_message_after=False,
                           clear_reactions_after=False, check_embeds=False, message=None):
 
+        super().__init__(timeout=timeout)
         self.timeout = timeout
         self.delete_message_after = delete_message_after
         self.clear_reactions_after = clear_reactions_after
@@ -756,36 +757,40 @@ class Menu(metaclass=_MenuMeta):
         """
         raise NotImplementedError
 
+    async def _set_all_disabled(self, disable: bool):
+        """|coro|
+
+        Enables or disable all :class:`nextcord.ui.Button` components in the menu.
+
+        Parameters
+        ------------
+        disable: :class:`bool`
+            Whether to disable or enable the buttons.
+        """
+        for child in self.children:
+            child.disabled = disable
+        await self.message.edit(view=self)
+
+    async def enable(self):
+        """|coro|
+
+        Enables all :class:`nextcord.ui.Button` components in the menu.
+        """
+        await self._set_all_disabled(False)
+
+    async def disable(self):
+        """|coro|
+
+        Disables all :class:`nextcord.ui.Button` components in the menu.
+        """
+        await self._set_all_disabled(True)
+
     def stop(self):
         """Stops the internal loop."""
         self._running = False
         for task in self.__tasks:
             task.cancel()
         self.__tasks.clear()
-
-
-class ButtonMenu(Menu, nextcord.ui.View):
-    r"""An interface that allows handling menus by using button interaction components.
-
-    Buttons should be marked with the :func:`nextcord.ui.button` decorator. Please note that
-    this expects the methods to have two parameters, the ``button`` and the ``interaction``.
-    The ``button`` is of type :class:`nextcord.ui.Button`.
-    The ``interaction`` is of type :class:`nextcord.Interaction`.
-    """
-    def __init__(self, timeout=DEFAULT_TIMEOUT, *args, **kwargs):
-        Menu.__init__(self, timeout=timeout, *args, **kwargs)
-        nextcord.ui.View.__init__(self, timeout=timeout)
-
-    async def stop(self):
-        """Stops the internal loop and view interactions."""
-        # disable the buttons
-        for child in self.children:
-            child.disabled = True
-        await self.message.edit(view=self)
-        # stop the menu loop
-        Menu.stop(self)
-        # stop view interactions
-        nextcord.ui.View.stop(self)
 
 
 class PageSource:

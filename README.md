@@ -176,17 +176,19 @@ await pages.start(ctx)
 
 ## Button Component Menus
 
-Here is a button implementation of a basic menu that has a stop button and two reply reactions. Note that the `ButtonMenu` class is used instead of `Menu` in order to make it a `View`.
+Here is a button implementation of a basic menu that has a stop button and two reply reactions.
 
-`ButtonMenu` is a subclass of `Menu` and it therefore has all the same attributes and methods.
+Note that `view=self` is passed with the initial message and `nextcord.ui.button` is used instead of `menus.button`.
 
-Also note that `ButtonMenu.stop()` is a coroutine and needs to be awaited.
+`Menu.disable()` can be used to disable all buttons in the menu.
+
+`Menu.enable()` can be used to enable all buttons in the menu.
 
 ```py
 import nextcord
 from nextcord.ext import menus
 
-class MyButtonMenu(menus.ButtonMenu):
+class MyButtonMenu(menus.Menu):
     async def send_initial_message(self, ctx, channel):
         return await channel.send(f'Hello {ctx.author}', view=self)
 
@@ -200,7 +202,8 @@ class MyButtonMenu(menus.ButtonMenu):
 
     @nextcord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, button, interaction):
-        await self.stop()
+        await self.disable()
+        self.stop()
 ```
 
 Instantiation is the same as above.
