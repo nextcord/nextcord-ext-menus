@@ -797,7 +797,7 @@ class PageSource:
         return
 
     def is_paginating(self):
-        """An abstract method that notifies the :class:`MenuPages` whether or not
+        """An abstract method that notifies the :class:`MenuPagesBase` whether or not
         to start paginating. This signals whether to add reactions or not.
 
         Subclasses must implement this.
@@ -883,8 +883,8 @@ class PageSource:
         raise NotImplementedError
 
 
-class MenuPages(Menu):
-    """A special type of Menu dedicated to pagination.
+class MenuPagesBase(Menu):
+    """A base class dedicated to pagination for reaction and button menus.
 
     Attributes
     ------------
@@ -954,6 +954,8 @@ class MenuPages(Menu):
         """
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
+        if hasattr(self, '__discord_ui_view__'):
+            kwargs['view'] = self
         return await channel.send(**kwargs)
 
     async def start(self, ctx, *, channel=None, wait=False):
@@ -982,8 +984,21 @@ class MenuPages(Menu):
             return True
         return max_pages <= 2
 
+
+class MenuPages(MenuPagesBase):
+    """A special type of Menu dedicated to pagination with reactions.
+
+    Attributes
+    ------------
+    current_page: :class:`int`
+        The current page that we are in. Zero-indexed
+        between [0, :attr:`PageSource.max_pages`).
+    """
+    def __init__(self, source, **kwargs):
+        super().__init__(source, **kwargs)
+
     @button('\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f',
-            position=First(0), skip_if=_skip_double_triangle_buttons)
+            position=First(0), skip_if=MenuPagesBase._skip_double_triangle_buttons)
     async def go_to_first_page(self, payload):
         """go to the first page"""
         await self.show_page(0)
@@ -999,7 +1014,7 @@ class MenuPages(Menu):
         await self.show_checked_page(self.current_page + 1)
 
     @button('\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f',
-            position=Last(1), skip_if=_skip_double_triangle_buttons)
+            position=Last(1), skip_if=MenuPagesBase._skip_double_triangle_buttons)
     async def go_to_last_page(self, payload):
         """go to the last page"""
         # The call here is safe because it's guarded by skip_if
@@ -1009,6 +1024,57 @@ class MenuPages(Menu):
     async def stop_pages(self, payload):
         """stops the pagination session."""
         self.stop()
+
+
+class ButtonMenuPages(MenuPagesBase, nextcord.ui.View):
+    """A special type of Menu dedicated to pagination with button components.
+
+    Parameters
+    -----------
+    timeout: Optional[:class:`float`]
+        Timeout in seconds from last interaction with the UI before no longer accepting input.
+        If ``None`` then there is no timeout.
+
+    Attributes
+    ------------
+    current_page: :class:`int`
+        The current page that we are in. Zero-indexed
+        between [0, :attr:`PageSource.max_pages`).
+    """
+    def __init__(self, source, timeout=180.0, **kwargs):
+        MenuPagesBase.__init__(self, source, **kwargs)
+        nextcord.ui.View.__init__(self, timeout=timeout)
+
+    @nextcord.ui.button(emoji='\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f',
+            style=nextcord.ButtonStyle.primary)
+    async def go_to_first_page(self, button, interaction):
+        """go to the first page"""
+        await self.show_page(0)
+
+    @nextcord.ui.button(emoji='\N{BLACK LEFT-POINTING TRIANGLE}\ufe0f',
+            style=nextcord.ButtonStyle.primary)
+    async def go_to_previous_page(self, button, interaction):
+        """go to the previous page"""
+        await self.show_checked_page(self.current_page - 1)
+
+    @nextcord.ui.button(emoji='\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f',
+            style=nextcord.ButtonStyle.primary)
+    async def go_to_next_page(self, button, interaction):
+        """go to the next page"""
+        await self.show_checked_page(self.current_page + 1)
+
+    @nextcord.ui.button(emoji='\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f',
+            style=nextcord.ButtonStyle.primary)
+    async def go_to_last_page(self, button, interaction):
+        """go to the last page"""
+        # The call here is safe because it's guarded by skip_if
+        await self.show_page(self._source.get_max_pages() - 1)
+
+    @nextcord.ui.button(emoji='\N{BLACK SQUARE FOR STOP}\ufe0f',
+            style=nextcord.ButtonStyle.primary)
+    async def stop_pages(self, button, interaction):
+        """stops the pagination session."""
+        nextcord.ui.View.stop(self)
 
 
 class ListPageSource(PageSource):
