@@ -1138,7 +1138,7 @@ class ButtonMenuPages(MenuPagesBase):
         The current page that we are in. Zero-indexed
         between [0, :attr:`PageSource.max_pages`).
     """
-    def __init__(self, source: PageSource, style: nextcord.ButtonStyle = nextcord.ButtonStyle.primary, **kwargs):
+    def __init__(self, source: PageSource, style: nextcord.ButtonStyle = nextcord.ButtonStyle.secondary, **kwargs):
         super().__init__(source, **kwargs)
         # add buttons to the view
         for emoji in (self.FIRST_PAGE, self.PREVIOUS_PAGE, self.NEXT_PAGE, self.LAST_PAGE, self.STOP):

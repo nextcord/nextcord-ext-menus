@@ -115,7 +115,7 @@ class MySource(menus.ListPageSource):
         return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 
 # somewhere else:
-pages = menus.MenuPages(source=MySource(range(1, 100)))
+pages = menus.MenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
 await pages.start(ctx)
 ```
 
@@ -220,10 +220,12 @@ A `ButtonMenuPages` class is provided for pagination with button components.
 
 `ButtonMenuPages` works the same way as the `MenuPages` class found above, but with button components instead of reactions.
 
+A `ButtonStyle` can optionally be passed in to customize the appearance.
+
 `MySource` is the same as defined above, but the menu is instantiated with:
 
 ```py
-pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
+pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), style=nextcord.ButtonStyle.primary)
 await pages.start(ctx)
 ```
 
