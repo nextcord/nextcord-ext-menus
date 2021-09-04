@@ -26,11 +26,11 @@ if version.endswith(('a', 'b', 'rc')):
         pass
 
 setup(name='nextcord-ext-menus',
-      author='Nextcord Developers',
+      author='Rapptz & Nextcord Developers',
       url='https://github.com/nextcord/nextcord-ext-menus',
       version=version,
       packages=['nextcord.ext.menus'],
       license='MIT',
-      description='An extension module to make reaction based menus with nextcord',
-      python_requires='>=3.6.0'
+      description='An extension module to make reaction and button based menus with nextcord',
+      python_requires='>=3.8.0'
 )
