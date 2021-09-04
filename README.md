@@ -4,7 +4,7 @@ A Nextcord extension that makes working with reaction menus and button component
 
 # Installing
 
-Python **>=3.6.0** is required.
+Python **>=3.8.0** is required.
 
 ```py 
 pip install --upgrade nextcord-ext-menus
