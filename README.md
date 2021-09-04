@@ -6,10 +6,10 @@ A Nextcord extension that makes working with reaction menus a bit easier.
 
 ## Installing
 
-Python **>=3.6.0** is required.
+Python **>=3.8** is required.
 
 ```py 
-pip install --upgrade nextcord-ext-menus
+pip install --upgrade git+https://github.com/nextcord/nextcord-ext-menus.git
 ```
 
 ## Getting Started
