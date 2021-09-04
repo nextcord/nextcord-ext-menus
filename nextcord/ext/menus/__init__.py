@@ -6,6 +6,7 @@ import inspect
 import logging
 import re
 from collections import OrderedDict, namedtuple
+from typing import List, Union
 
 # Needed for the setup.py script
 __version__ = '1.0.0'
@@ -13,6 +14,7 @@ __version__ = '1.0.0'
 # consistency with the `nextcord` namespaced logging
 log = logging.getLogger(__name__)
 
+DEFAULT_TIMEOUT = 180.0
 
 class MenuError(Exception):
     pass
@@ -311,7 +313,7 @@ class Menu(metaclass=_MenuMeta):
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
         message you want to attach a menu to.
     """
-    def __init__(self, *, timeout=180.0, delete_message_after=False,
+    def __init__(self, *, timeout=DEFAULT_TIMEOUT, delete_message_after=False,
                           clear_reactions_after=False, check_embeds=False, message=None):
 
         self.timeout = timeout
@@ -504,7 +506,15 @@ class Menu(metaclass=_MenuMeta):
 
     def should_add_reactions(self):
         """:class:`bool`: Whether to add reactions to this menu session."""
-        return len(self.buttons)
+        return len(self.buttons) > 0
+
+    def should_add_buttons(self):
+        """:class:`bool`: Whether to add button components to this menu session."""
+        return hasattr(self, 'children') and len(self.children) > 0
+
+    def should_add_reactions_or_buttons(self):
+        """:class:`bool`: Whether to add reactions or buttons to this menu session."""
+        return self.should_add_reactions() or self.should_add_buttons()
 
     def _verify_permissions(self, ctx, channel, permissions):
         if not permissions.send_messages:
@@ -698,7 +708,7 @@ class Menu(metaclass=_MenuMeta):
         if msg is None:
             self.message = msg = await self.send_initial_message(ctx, channel)
 
-        if self.should_add_reactions():
+        if self.should_add_reactions_or_buttons():
             # Start the task first so we can listen to reactions before doing anything
             for task in self.__tasks:
                 task.cancel()
@@ -761,6 +771,53 @@ class Menu(metaclass=_MenuMeta):
             task.cancel()
         self.__tasks.clear()
 
+class ButtonMenu(Menu, nextcord.ui.View):
+    r"""An interface that allows handling menus by using button interaction components.
+
+    Buttons should be marked with the :func:`nextcord.ui.button` decorator. Please note that
+    this expects the methods to have two parameters, the ``button`` and the ``interaction``.
+    The ``button`` is of type :class:`nextcord.ui.Button`.
+    The ``interaction`` is of type :class:`nextcord.Interaction`.
+    """
+    def __init__(self, timeout=DEFAULT_TIMEOUT, *args, **kwargs):
+        Menu.__init__(self, timeout=timeout, *args, **kwargs)
+        nextcord.ui.View.__init__(self, timeout=timeout)
+
+    async def _set_all_disabled(self, disable: bool):
+        """|coro|
+
+        Enables or disable all :class:`nextcord.ui.Button` components in the menu.
+
+        Parameters
+        ------------
+        disable: :class:`bool`
+            Whether to disable or enable the buttons.
+        """
+        for child in self.children:
+            child.disabled = disable
+        await self.message.edit(view=self)
+
+    async def enable(self):
+        """|coro|
+
+        Enables all :class:`nextcord.ui.Button` components in the menu.
+        """
+        await self._set_all_disabled(False)
+
+    async def disable(self):
+        """|coro|
+
+        Disables all :class:`nextcord.ui.Button` components in the menu.
+        """
+        await self._set_all_disabled(True)
+
+    def stop(self):
+        """Stops the internal loop and view interactions."""
+        # stop the menu loop
+        Menu.stop(self)
+        # stop view interactions
+        nextcord.ui.View.stop(self)
+
 
 class PageSource:
     """An interface representing a menu page's data source for the actual menu page.
@@ -797,7 +854,7 @@ class PageSource:
         return
 
     def is_paginating(self):
-        """An abstract method that notifies the :class:`MenuPages` whether or not
+        """An abstract method that notifies the :class:`MenuPagesBase` whether or not
         to start paginating. This signals whether to add reactions or not.
 
         Subclasses must implement this.
@@ -883,8 +940,8 @@ class PageSource:
         raise NotImplementedError
 
 
-class MenuPages(Menu):
-    """A special type of Menu dedicated to pagination.
+class MenuPagesBase(ButtonMenu):
+    """A base class dedicated to pagination for reaction and button menus.
 
     Attributes
     ------------
@@ -892,6 +949,12 @@ class MenuPages(Menu):
         The current page that we are in. Zero-indexed
         between [0, :attr:`PageSource.max_pages`).
     """
+    FIRST_PAGE = '\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f'
+    PREVIOUS_PAGE = '\N{BLACK LEFT-POINTING TRIANGLE}\ufe0f'
+    NEXT_PAGE = '\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f'
+    LAST_PAGE = '\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f'
+    STOP = '\N{BLACK SQUARE FOR STOP}\ufe0f'
+
     def __init__(self, source, **kwargs):
         self._source = source
         self.current_page = 0
@@ -954,6 +1017,8 @@ class MenuPages(Menu):
         """
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
+        if hasattr(self, '__discord_ui_view__'):
+            kwargs['view'] = self
         return await channel.send(**kwargs)
 
     async def start(self, ctx, *, channel=None, wait=False):
@@ -982,24 +1047,35 @@ class MenuPages(Menu):
             return True
         return max_pages <= 2
 
-    @button('\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f',
-            position=First(0), skip_if=_skip_double_triangle_buttons)
+
+class MenuPages(MenuPagesBase):
+    """A special type of Menu dedicated to pagination with reactions.
+
+    Attributes
+    ------------
+    current_page: :class:`int`
+        The current page that we are in. Zero-indexed
+        between [0, :attr:`PageSource.max_pages`).
+    """
+    def __init__(self, source, **kwargs):
+        super().__init__(source, **kwargs)
+
+    @button(MenuPagesBase.FIRST_PAGE, position=First(0), skip_if=MenuPagesBase._skip_double_triangle_buttons)
     async def go_to_first_page(self, payload):
         """go to the first page"""
         await self.show_page(0)
 
-    @button('\N{BLACK LEFT-POINTING TRIANGLE}\ufe0f', position=First(1))
+    @button(MenuPagesBase.PREVIOUS_PAGE, position=First(1))
     async def go_to_previous_page(self, payload):
         """go to the previous page"""
         await self.show_checked_page(self.current_page - 1)
 
-    @button('\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f', position=Last(0))
+    @button(MenuPagesBase.NEXT_PAGE, position=Last(0))
     async def go_to_next_page(self, payload):
         """go to the next page"""
         await self.show_checked_page(self.current_page + 1)
 
-    @button('\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f',
-            position=Last(1), skip_if=_skip_double_triangle_buttons)
+    @button(MenuPagesBase.LAST_PAGE, position=Last(1), skip_if=MenuPagesBase._skip_double_triangle_buttons)
     async def go_to_last_page(self, payload):
         """go to the last page"""
         # The call here is safe because it's guarded by skip_if
@@ -1009,6 +1085,80 @@ class MenuPages(Menu):
     async def stop_pages(self, payload):
         """stops the pagination session."""
         self.stop()
+
+
+class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
+    """
+    A custom button for pagination that will be disabled when unavailable.
+    """
+    def __init__(self, style: nextcord.ButtonStyle, emoji: Union[str, nextcord.Emoji, nextcord.PartialEmoji]):
+        super().__init__(style=style, emoji=emoji)
+        self._emoji = _cast_emoji(emoji)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        """
+        Callback for when this button is pressed
+        """
+        assert self.view is not None
+        view: ButtonMenuPages = self.view
+
+        # change the current page
+        if self._emoji.name == view.FIRST_PAGE:
+            await view.show_page(0)
+        elif self._emoji.name == view.PREVIOUS_PAGE:
+            await view.show_checked_page(view.current_page - 1)
+        elif self._emoji.name == view.NEXT_PAGE:
+            await view.show_checked_page(view.current_page + 1)
+        elif self._emoji.name == view.LAST_PAGE:
+            await view.show_page(view._source.get_max_pages() - 1)
+        
+        # disable buttons that are unavailable
+        view._disable_unavailable_buttons()
+
+        # disable all buttons if stop is pressed
+        if self._emoji.name == view.STOP:
+            await view.disable()
+            view.stop()
+
+        # update the view
+        await interaction.response.edit_message(view=view)
+
+
+class ButtonMenuPages(MenuPagesBase):
+    """A special type of Menu dedicated to pagination with button components.
+
+    Parameters
+    -----------
+    style: :class:`nextcord.ui.ButtonStyle`
+        The button style to use for the pagination buttons.
+
+    Attributes
+    ------------
+    current_page: :class:`int`
+        The current page that we are in. Zero-indexed
+        between [0, :attr:`PageSource.max_pages`).
+    """
+    def __init__(self, source: PageSource, style: nextcord.ButtonStyle = nextcord.ButtonStyle.secondary, **kwargs):
+        super().__init__(source, **kwargs)
+        # add buttons to the view
+        for emoji in (self.FIRST_PAGE, self.PREVIOUS_PAGE, self.NEXT_PAGE, self.LAST_PAGE, self.STOP):
+            if emoji in (self.FIRST_PAGE, self.LAST_PAGE) and self._skip_double_triangle_buttons():
+                continue
+            self.add_item(MenuPaginationButton(style=style, emoji=emoji))
+        self._disable_unavailable_buttons()
+
+    def _disable_unavailable_buttons(self):
+        """
+        Disables buttons that are unavailable to be pressed.
+        """
+        buttons: List[MenuPaginationButton] = self.children
+        max_pages = self._source.get_max_pages()
+        for button in buttons:
+            if button.emoji.name in (self.FIRST_PAGE, self.PREVIOUS_PAGE):
+                button.disabled = self.current_page == 0
+            elif max_pages and button.emoji.name in (self.LAST_PAGE, self.NEXT_PAGE):
+                button.disabled = self.current_page == max_pages - 1
+
 
 
 class ListPageSource(PageSource):
