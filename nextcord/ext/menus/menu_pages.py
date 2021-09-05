@@ -27,7 +27,10 @@ class MenuPagesBase(Menu):
     def __init__(self, source: PageSource, **kwargs):
         self._source = source
         self.current_page = 0
-        super().__init__(**kwargs)
+        if hasattr(self, "__button_menu_pages__"):
+            ButtonMenu.__init__(self, **kwargs)
+            return
+        super().__init__(self, **kwargs)
 
     @property
     def source(self) -> PageSource:
@@ -213,6 +216,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
     """
 
     def __init__(self, source: PageSource, style: nextcord.ButtonStyle = nextcord.ButtonStyle.secondary, **kwargs):
+        self.__button_menu_pages__ = True
         super().__init__(source, **kwargs)
         # add buttons to the view
         for emoji in (self.FIRST_PAGE, self.PREVIOUS_PAGE, self.NEXT_PAGE, self.LAST_PAGE, self.STOP):

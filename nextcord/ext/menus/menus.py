@@ -703,7 +703,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
     """
 
     def __init__(self, timeout: float = DEFAULT_TIMEOUT, clear_buttons_after: bool = False, *args, **kwargs):
-        kwargs["clear_reactions_after"] = kwargs["clear_reactions_after"] or clear_buttons_after
+        kwargs["clear_reactions_after"] = kwargs.get("clear_reactions_after", clear_buttons_after)
         Menu.__init__(self, timeout=timeout, *args, **kwargs)
         nextcord.ui.View.__init__(self, timeout=timeout)
 
