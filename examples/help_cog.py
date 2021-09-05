@@ -23,9 +23,13 @@ class EmbedField:
 class HelpPages(menus.ListPageSource):
     def __init__(self, help_command, data):
         self._help_command = help_command
+        # you can set here how many items to display per page
         super().__init__(data, per_page=2)
 
     async def format_page(self, menu, entries):
+        """
+        Returns an embed containing the entries for the current page
+        """
         invoked_with = self._help_command.invoked_with
         embed = nextcord.Embed(title="Bot Commands",
                                colour=self._help_command.COLOUR)
@@ -68,11 +72,11 @@ class NewHelpCommand(commands.MinimalHelpCommand):
                 value = "\u2002".join(f"`{PREFIX}{c.name}`" for c in filtered)
                 if cog and cog.description:
                     value = f"{cog.description}\n{value}"
-                embed_fields.append(EmbedField(
-                    name=name, value=value, inline=True))
+                # add EmbedField object to the list of fields
+                embed_fields.append(EmbedField(name=name, value=value, inline=True))
 
-        pages = menus.ButtonMenuPages(source=HelpPages(self, embed_fields), clear_buttons_after=True,
-                                      style=nextcord.ButtonStyle.primary)
+        # create a pagination menu that paginates the fields
+        pages = menus.ButtonMenuPages(source=HelpPages(self, embed_fields), clear_buttons_after=True)
         await pages.start(self.context)
 
     async def send_cog_help(self, cog: commands.Cog):
