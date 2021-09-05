@@ -1,16 +1,30 @@
 # nextcord-ext-menus
 
+[![Discord server invite](https://discord.com/api/guilds/881118111967883295/embed.png)](https://discord.gg/ZebatWssCB)
+[![PyPI version info](https://img.shields.io/pypi/v/nextcord-ext-menus.svg)](https://pypi.python.org/pypi/nextcord-ext-menus)
+[![PyPI supported Python versions](https://img.shields.io/pypi/pyversions/nextcord.svg)](https://pypi.python.org/pypi/nextcord)
+
 A Nextcord extension that makes working with reaction menus and button component menus a bit easier.
 
-# Installing
+![pages](https://user-images.githubusercontent.com/20955511/132110266-579e7090-5929-4f00-a4df-5bcf498890ee.gif)
 
-Python **>=3.8.0** is required.
+## Installing
+
+### Requirements
+
+**Python 3.8 or higher is required**
+
+It is necessary to first install [Nextcord](https://github.com/nextcord/nextcord)
+
+Then install the extension by running one of the following commands:
 
 ```py 
-pip install --upgrade nextcord-ext-menus
-```
+# Linux/macOS
+python3 -m pip install -U nextcord-ext-menus
 
-# Getting Started
+# Windows
+py -3 -m pip install -U nextcord-ext-menus
+```
 
 ## Reaction Menus
 
