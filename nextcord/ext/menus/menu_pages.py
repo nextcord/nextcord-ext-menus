@@ -30,7 +30,7 @@ class MenuPagesBase(Menu):
         if hasattr(self, "__button_menu_pages__"):
             ButtonMenu.__init__(self, **kwargs)
             return
-        super().__init__(self, **kwargs)
+        Menu.__init__(self, **kwargs)
 
     @property
     def source(self) -> PageSource:
