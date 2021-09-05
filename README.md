@@ -119,7 +119,7 @@ pages = menus.MenuPages(source=MySource(range(1, 100)), clear_reactions_after=Tr
 await pages.start(ctx)
 ```
 
-The `format_page` can return either a `str` for content, `discord.Embed` for an embed, or a `dict` to pass into the kwargs of `Message.edit`.
+The `format_page` can return either a `str` for content, `nextcord.Embed` for an embed, or a `dict` to pass into the kwargs of `Message.edit`.
 
 Some more examples using `GroupByPageSource`:
 

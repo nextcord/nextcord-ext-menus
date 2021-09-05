@@ -1,7 +1,9 @@
-from typing import List, Union
+from typing import Any, List, Optional
 
 import nextcord
+from nextcord.ext import commands
 
+from .constants import EmojiType, PageFormatType, SendKwargsType
 from .menus import ButtonMenu, button
 from .page_source import PageSource
 from .utils import First, Last, _cast_emoji
@@ -22,17 +24,17 @@ class MenuPagesBase(ButtonMenu):
     LAST_PAGE = '\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f'
     STOP = '\N{BLACK SQUARE FOR STOP}\ufe0f'
 
-    def __init__(self, source, **kwargs):
+    def __init__(self, source: PageSource, **kwargs):
         self._source = source
         self.current_page = 0
         super().__init__(**kwargs)
 
     @property
-    def source(self):
+    def source(self) -> PageSource:
         """:class:`PageSource`: The source where the data comes from."""
         return self._source
 
-    async def change_source(self, source):
+    async def change_source(self, source: PageSource):
         """|coro|
 
         Changes the :class:`PageSource` to a different one at runtime.
@@ -57,11 +59,14 @@ class MenuPagesBase(ButtonMenu):
             await source._prepare_once()
             await self.show_page(0)
 
-    def should_add_reactions(self):
+    def should_add_reactions(self) -> bool:
+        return self.should_add_reactions_or_buttons()
+
+    def should_add_reactions_or_buttons(self) -> bool:
         return self._source.is_paginating()
 
-    async def _get_kwargs_from_page(self, page):
-        value = await nextcord.utils.maybe_coroutine(self._source.format_page, self, page)
+    async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
+        value: PageFormatType = await nextcord.utils.maybe_coroutine(self._source.format_page, self, page)
         if isinstance(value, dict):
             return value
         elif isinstance(value, str):
@@ -69,13 +74,13 @@ class MenuPagesBase(ButtonMenu):
         elif isinstance(value, nextcord.Embed):
             return {'embed': value, 'content': None}
 
-    async def show_page(self, page_number):
+    async def show_page(self, page_number: int):
         page = await self._source.get_page(page_number)
         self.current_page = page_number
         kwargs = await self._get_kwargs_from_page(page)
         await self.message.edit(**kwargs)
 
-    async def send_initial_message(self, ctx, channel):
+    async def send_initial_message(self, ctx, channel: nextcord.abc.Messageable) -> nextcord.Message:
         """|coro|
 
         The default implementation of :meth:`Menu.send_initial_message`
@@ -89,11 +94,11 @@ class MenuPagesBase(ButtonMenu):
             kwargs['view'] = self
         return await channel.send(**kwargs)
 
-    async def start(self, ctx, *, channel=None, wait=False):
+    async def start(self, ctx: commands.Context, *, channel: Optional[nextcord.abc.Messageable] = None, wait: Optional[bool] = False):
         await self._source._prepare_once()
         await super().start(ctx, channel=channel, wait=wait)
 
-    async def show_checked_page(self, page_number):
+    async def show_checked_page(self, page_number: int):
         max_pages = self._source.get_max_pages()
         try:
             # If it doesn't give maximum pages, it cannot be checked
@@ -107,7 +112,7 @@ class MenuPagesBase(ButtonMenu):
         if self._source.is_paginating():
             await self.show_page(self.current_page)
 
-    def _skip_double_triangle_buttons(self):
+    def _skip_double_triangle_buttons(self) -> bool:
         max_pages = self._source.get_max_pages()
         if max_pages is None:
             return True
@@ -124,7 +129,7 @@ class MenuPages(MenuPagesBase):
         between [0, :attr:`PageSource.max_pages`).
     """
 
-    def __init__(self, source, **kwargs):
+    def __init__(self, source: PageSource, **kwargs):
         super().__init__(source, **kwargs)
 
     @button(MenuPagesBase.FIRST_PAGE, position=First(0), skip_if=MenuPagesBase._skip_double_triangle_buttons)
@@ -159,7 +164,7 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
     A custom button for pagination that will be disabled when unavailable.
     """
 
-    def __init__(self, style: nextcord.ButtonStyle, emoji: Union[str, nextcord.Emoji, nextcord.PartialEmoji]):
+    def __init__(self, style: nextcord.ButtonStyle, emoji: EmojiType):
         super().__init__(style=style, emoji=emoji)
         self._emoji = _cast_emoji(emoji)
 
@@ -211,7 +216,7 @@ class ButtonMenuPages(MenuPagesBase):
         super().__init__(source, **kwargs)
         # add buttons to the view
         for emoji in (self.FIRST_PAGE, self.PREVIOUS_PAGE, self.NEXT_PAGE, self.LAST_PAGE, self.STOP):
-            if emoji in (self.FIRST_PAGE, self.LAST_PAGE) and self._skip_double_triangle_buttons():
+            if emoji in {self.FIRST_PAGE, self.LAST_PAGE} and self._skip_double_triangle_buttons():
                 continue
             self.add_item(MenuPaginationButton(style=style, emoji=emoji))
         self._disable_unavailable_buttons()

@@ -1,3 +1,5 @@
+from typing import Pattern
+from .constants import EmojiType
 import re
 
 import nextcord
@@ -6,7 +8,7 @@ import nextcord
 class Position:
     __slots__ = ('number', 'bucket')
 
-    def __init__(self, number, *, bucket=1):
+    def __init__(self, number: int, *, bucket: int = 1):
         self.bucket = bucket
         self.number = number
 
@@ -56,7 +58,7 @@ _custom_emoji = re.compile(
     r'<?(?P<animated>a)?:?(?P<name>[A-Za-z0-9\_]+):(?P<id>[0-9]{13,20})>?')
 
 
-def _cast_emoji(obj, *, _custom_emoji=_custom_emoji):
+def _cast_emoji(obj: EmojiType, *, _custom_emoji: Pattern[str]=_custom_emoji):
     if isinstance(obj, nextcord.PartialEmoji):
         return obj
 

@@ -1,11 +1,11 @@
-from typing import Any, List
-from .menus import Menu
 import inspect
 import itertools
 from collections import namedtuple
-from typing import Any, Dict, List, Union
+from typing import Any, List
 
-import nextcord
+from .constants import PageFormatType
+from .menus import Menu
+
 
 class PageSource:
     """An interface representing a menu page's data source for the actual menu page.
@@ -93,7 +93,7 @@ class PageSource:
         """
         raise NotImplementedError
 
-    async def format_page(self, menu: Menu, page: List[Any]) -> Union[str, nextcord.Embed, Dict[str, Union[str, nextcord.Embed]]]:
+    async def format_page(self, menu: Menu, page: List[Any]) -> PageFormatType:
         """|maybecoro|
 
         An abstract method to format the page.

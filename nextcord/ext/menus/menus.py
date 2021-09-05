@@ -1,11 +1,14 @@
 import asyncio
 import inspect
 from collections import OrderedDict
-from typing import OrderedDict
+from typing import (Any, Callable, Coroutine, Mapping, NoReturn, Optional,
+                    OrderedDict, Union)
 
 import nextcord
+from nextcord.ext import commands
+from nextcord.permissions import Permissions
 
-from .constants import DEFAULT_TIMEOUT, log
+from .constants import DEFAULT_TIMEOUT, EmojiType, log
 from .exceptions import (CannotAddReactions, CannotEmbedLinks,
                          CannotReadMessageHistory, CannotSendMessages,
                          MenuError)
@@ -24,7 +27,7 @@ class Button:
 
     Attributes
     ------------
-    emoji: :class:`discord.PartialEmoji`
+    emoji: :class:`nextcord.PartialEmoji`
         The emoji to use as the button. Note that passing a string will
         transform it into a :class:`nextcord.PartialEmoji`.
     action
@@ -44,7 +47,9 @@ class Button:
     """
     __slots__ = ('emoji', '_action', '_skip_if', 'position', 'lock')
 
-    def __init__(self, emoji, action, *, skip_if=None, position=None, lock=True):
+    def __init__(self, emoji: nextcord.PartialEmoji, action: Coroutine, *, skip_if: Optional[Callable[["Menu"], bool]] = None,
+                 position: Optional[Position] = None, lock: Optional[bool] = True):
+
         self.emoji = _cast_emoji(emoji)
         self.action = action
         self.skip_if = skip_if
@@ -52,13 +57,13 @@ class Button:
         self.lock = lock
 
     @property
-    def skip_if(self):
+    def skip_if(self) -> Optional[Callable[["Menu"], bool]]:
         return self._skip_if
 
     @skip_if.setter
-    def skip_if(self, value):
+    def skip_if(self, value: Optional[Callable[["Menu"], bool]]):
         if value is None:
-            self._skip_if = lambda x: False
+            self._skip_if = lambda _: False
             return
 
         try:
@@ -74,11 +79,11 @@ class Button:
             self._skip_if = value.__func__
 
     @property
-    def action(self):
+    def action(self) -> Coroutine:
         return self._action
 
     @action.setter
-    def action(self, value):
+    def action(self, value: Coroutine):
         try:
             menu_self = value.__self__
         except AttributeError:
@@ -96,19 +101,19 @@ class Button:
 
         self._action = value
 
-    def __call__(self, menu, payload):
+    def __call__(self, menu: "Menu", payload: nextcord.RawReactionActionEvent):
         if self.skip_if(menu):
             return
         return self._action(menu, payload)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.emoji)
 
-    def is_valid(self, menu):
+    def is_valid(self, menu) -> bool:
         return not self.skip_if(menu)
 
 
-def button(emoji, **kwargs):
+def button(emoji: EmojiType, **kwargs):
     """Denotes a method to be button for the :class:`Menu`.
 
     The methods being wrapped must have both a ``self`` and a ``payload``
@@ -138,21 +143,22 @@ def button(emoji, **kwargs):
     emoji: Union[:class:`str`, :class:`nextcord.PartialEmoji`]
         The emoji to use for the button.
     """
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         func.__menu_button__ = _cast_emoji(emoji)
         func.__menu_button_kwargs__ = kwargs
         return func
     return decorator
 
+
 class _MenuMeta(type):
     # noinspection PyMethodParameters
     @classmethod
-    def __prepare__(cls, name, bases, **kwargs):
+    def __prepare__(cls, name, bases, **kwargs) -> OrderedDict:
         # This is needed to maintain member order for the buttons
         return OrderedDict()
 
     # noinspection PyMethodParameters
-    def __new__(cls, name, bases, attrs, **kwargs):
+    def __new__(cls, name, bases, attrs, **kwargs) -> "_MenuMeta":
         buttons = []
         new_cls = super().__new__(cls, name, bases, attrs)
 
@@ -179,7 +185,7 @@ class _MenuMeta(type):
         new_cls.__menu_buttons__ = buttons
         return new_cls
 
-    def get_buttons(cls):
+    def get_buttons(cls) -> OrderedDict:
         buttons = OrderedDict()
         for func in cls.__menu_buttons__:
             emoji = func.__menu_button__
@@ -220,8 +226,8 @@ class Menu(metaclass=_MenuMeta):
         message you want to attach a menu to.
     """
 
-    def __init__(self, *, timeout=DEFAULT_TIMEOUT, delete_message_after=False,
-                 clear_reactions_after=False, check_embeds=False, message=None):
+    def __init__(self, *, timeout: float = DEFAULT_TIMEOUT, delete_message_after: bool = False,
+                 clear_reactions_after: bool = False, check_embeds: bool = False, message: Optional[nextcord.Message] = None):
 
         self.timeout = timeout
         self.delete_message_after = delete_message_after
@@ -239,7 +245,7 @@ class Menu(metaclass=_MenuMeta):
         self._event = asyncio.Event()
 
     @nextcord.utils.cached_property
-    def buttons(self):
+    def buttons(self) -> Mapping[str, Button]:
         """Retrieves the buttons that are to be used for this menu session.
 
         Skipped buttons are not in the resulting dictionary.
@@ -256,7 +262,7 @@ class Menu(metaclass=_MenuMeta):
             if button.is_valid(self)
         }
 
-    def add_button(self, button, *, react=False):
+    def add_button(self, button: Button, *, react: bool = False):
         """|maybecoro|
 
         Adds a button to the list of buttons.
@@ -311,7 +317,7 @@ class Menu(metaclass=_MenuMeta):
                 raise MenuError('Menu has not been started yet')
             return dummy()
 
-    def remove_button(self, emoji, *, react=False):
+    def remove_button(self, emoji: Union[Button, str], *, react: bool = False) -> Union[Coroutine[Any, Any, None], NoReturn]:
         """|maybecoro|
 
         Removes a button from the list of buttons.
@@ -355,7 +361,7 @@ class Menu(metaclass=_MenuMeta):
                 raise MenuError('Menu has not been started yet')
             return dummy()
 
-    def clear_buttons(self, *, react=False):
+    def clear_buttons(self, *, react: bool = False) -> Union[Coroutine[Any, Any, None], NoReturn]:
         """|maybecoro|
 
         Removes all buttons from the list of buttons.
@@ -411,19 +417,19 @@ class Menu(metaclass=_MenuMeta):
 
             return dummy()
 
-    def should_add_reactions(self):
+    def should_add_reactions(self) -> bool:
         """:class:`bool`: Whether to add reactions to this menu session."""
         return len(self.buttons) > 0
 
-    def should_add_buttons(self):
+    def should_add_buttons(self) -> bool:
         """:class:`bool`: Whether to add button components to this menu session."""
         return hasattr(self, 'children') and len(self.children) > 0
 
-    def should_add_reactions_or_buttons(self):
+    def should_add_reactions_or_buttons(self) -> bool:
         """:class:`bool`: Whether to add reactions or buttons to this menu session."""
         return self.should_add_reactions() or self.should_add_buttons()
 
-    def _verify_permissions(self, ctx, channel, permissions):
+    def _verify_permissions(self, ctx: commands.Context, channel: nextcord.abc.Messageable, permissions: Permissions):
         if not permissions.send_messages:
             raise CannotSendMessages()
 
@@ -437,7 +443,7 @@ class Menu(metaclass=_MenuMeta):
             if not permissions.read_message_history:
                 raise CannotReadMessageHistory()
 
-    def reaction_check(self, payload):
+    def reaction_check(self, payload: nextcord.RawReactionActionEvent) -> bool:
         """The function that is used to check whether the payload should be processed.
         This is passed to :meth:`nextcord.ext.commands.Bot.wait_for <Bot.wait_for>`.
 
@@ -445,7 +451,7 @@ class Menu(metaclass=_MenuMeta):
 
         Parameters
         ------------
-        payload: :class:`discord.RawReactionActionEvent`
+        payload: :class:`nextcord.RawReactionActionEvent`
             The payload to check.
 
         Returns
@@ -533,14 +539,14 @@ class Menu(metaclass=_MenuMeta):
             except Exception:
                 pass
 
-    async def update(self, payload):
+    async def update(self, payload: nextcord.RawReactionActionEvent):
         """|coro|
 
         Updates the menu after an event has been received.
 
         Parameters
         -----------
-        payload: :class:`discord.RawReactionActionEvent`
+        payload: :class:`nextcord.RawReactionActionEvent`
             The reaction event that triggered this update.
         """
         button = self.buttons[payload.emoji]
@@ -557,7 +563,7 @@ class Menu(metaclass=_MenuMeta):
         except Exception as exc:
             await self.on_menu_button_error(exc)
 
-    async def on_menu_button_error(self, exc):
+    async def on_menu_button_error(self, exc: Exception):
         """|coro|
 
         Handles reporting of errors while updating the menu from events.
@@ -574,7 +580,7 @@ class Menu(metaclass=_MenuMeta):
         # which would require awaiting, such as stopping an erroring menu.
         log.exception("Unhandled exception during menu update.", exc_info=exc)
 
-    async def start(self, ctx, *, channel=None, wait=False):
+    async def start(self, ctx: commands.Context, *, channel: Optional[nextcord.abc.Messageable] = None, wait: bool = False):
         """|coro|
 
         Starts the interactive menu session.
@@ -583,7 +589,7 @@ class Menu(metaclass=_MenuMeta):
         -----------
         ctx: :class:`Context`
             The invocation context to use.
-        channel: :class:`discord.abc.Messageable`
+        channel: :class:`nextcord.abc.Messageable`
             The messageable to send the message to. If not given
             then it defaults to the channel in the context.
         wait: :class:`bool`
@@ -634,7 +640,7 @@ class Menu(metaclass=_MenuMeta):
             if wait:
                 await self._event.wait()
 
-    async def finalize(self, timed_out):
+    async def finalize(self, timed_out: bool):
         """|coro|
 
         A coroutine that is called when the menu loop has completed
@@ -648,7 +654,7 @@ class Menu(metaclass=_MenuMeta):
         """
         pass
 
-    async def send_initial_message(self, ctx, channel):
+    async def send_initial_message(self, ctx: commands.Context, channel: nextcord.abc.Messageable) -> nextcord.Message:
         """|coro|
 
         Sends the initial message for the menu session.
@@ -663,12 +669,12 @@ class Menu(metaclass=_MenuMeta):
         ------------
         ctx: :class:`Context`
             The invocation context to use.
-        channel: :class:`discord.abc.Messageable`
+        channel: :class:`nextcord.abc.Messageable`
             The messageable to send the message to.
 
         Returns
         --------
-        :class:`discord.Message`
+        :class:`nextcord.Message`
             The message that has been sent.
         """
         raise NotImplementedError
@@ -690,9 +696,12 @@ class ButtonMenu(Menu, nextcord.ui.View):
     The ``interaction`` is of type :class:`nextcord.Interaction`.
     """
 
-    def __init__(self, timeout=DEFAULT_TIMEOUT, *args, **kwargs):
+    def __init__(self, timeout: float = DEFAULT_TIMEOUT, *args, **kwargs):
         Menu.__init__(self, timeout=timeout, *args, **kwargs)
         nextcord.ui.View.__init__(self, timeout=timeout)
+
+    async def _update_view(self):
+        await self.message.edit(view=self)
 
     async def _set_all_disabled(self, disable: bool):
         """|coro|
@@ -706,7 +715,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
         """
         for child in self.children:
             child.disabled = disable
-        await self.message.edit(view=self)
+        await self._update_view()
 
     async def enable(self):
         """|coro|
@@ -721,6 +730,14 @@ class ButtonMenu(Menu, nextcord.ui.View):
         Disables all :class:`nextcord.ui.Button` components in the menu.
         """
         await self._set_all_disabled(True)
+
+    async def clear(self):
+        """|coro|
+
+        Removes all components in the menu.
+        """
+        self.clear_items()
+        await self._update_view()
 
     def stop(self):
         """Stops the internal loop and view interactions."""
