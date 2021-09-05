@@ -1,10 +1,12 @@
 import inspect
 import itertools
-from collections import namedtuple
-from typing import Any, List
+from typing import (Any, AsyncIterator, Callable, List, NamedTuple, Optional,
+                    Sequence, TypeVar, Union)
 
-from .constants import PageFormatType
+from .constants import PageFormatType, SendKwargsType
 from .menus import Menu
+
+DataType = TypeVar("DataType")
 
 
 class PageSource:
@@ -41,7 +43,7 @@ class PageSource:
         """
         pass
 
-    def is_paginating(self):
+    def is_paginating(self) -> bool:
         """An abstract method that notifies the :class:`MenuPagesBase` whether or not
         to start paginating. This signals whether to add reactions or not.
 
@@ -54,7 +56,7 @@ class PageSource:
         """
         raise NotImplementedError
 
-    def get_max_pages(self):
+    def get_max_pages(self) -> Optional[int]:
         """An optional abstract method that retrieves the maximum number of pages
         this page source has. Useful for UX purposes.
 
@@ -68,7 +70,7 @@ class PageSource:
         """
         return None
 
-    async def get_page(self, page_number):
+    async def get_page(self, page_number: int) -> Any:
         """|coro|
 
         An abstract method that retrieves an object representing the object to format.
@@ -93,7 +95,7 @@ class PageSource:
         """
         raise NotImplementedError
 
-    async def format_page(self, menu: Menu, page: List[Any]) -> PageFormatType:
+    async def format_page(self, menu: Menu, page: Any) -> PageFormatType:
         """|maybecoro|
 
         An abstract method to format the page.
@@ -142,7 +144,7 @@ class ListPageSource(PageSource):
         How many elements are in a page.
     """
 
-    def __init__(self, entries, *, per_page):
+    def __init__(self, entries: Sequence[DataType], *, per_page: int):
         self.entries = entries
         self.per_page = per_page
 
@@ -152,15 +154,15 @@ class ListPageSource(PageSource):
 
         self._max_pages = pages
 
-    def is_paginating(self):
+    def is_paginating(self) -> bool:
         """:class:`bool`: Whether pagination is required."""
         return len(self.entries) > self.per_page
 
-    def get_max_pages(self):
+    def get_max_pages(self) -> int:
         """:class:`int`: The maximum number of pages required to paginate this sequence."""
         return self._max_pages
 
-    async def get_page(self, page_number):
+    async def get_page(self, page_number: int) -> Union[DataType, List[DataType]]:
         """Returns either a single element of the sequence or
         a slice of the sequence.
 
@@ -179,7 +181,14 @@ class ListPageSource(PageSource):
             return self.entries[base:base + self.per_page]
 
 
-_GroupByEntry = namedtuple('_GroupByEntry', 'key items')
+KeyType = TypeVar("KeyType")
+
+KeyFuncType = Callable[[DataType], KeyType]
+
+
+class _GroupByEntry(NamedTuple):
+    key: KeyFuncType
+    items: DataType
 
 
 class GroupByPageSource(ListPageSource):
@@ -203,26 +212,28 @@ class GroupByPageSource(ListPageSource):
         How many elements to have per page of the group.
     """
 
-    def __init__(self, entries, *, key, per_page, sort=True):
+    def __init__(self, entries: Sequence[DataType], *, key: KeyFuncType, per_page: int, sort: int = True):
         self.__entries = entries if not sort else sorted(entries, key=key)
-        nested = []
+        nested: List[_GroupByEntry] = []
         self.nested_per_page = per_page
-        for k, g in itertools.groupby(self.__entries, key=key):
-            g = list(g)
-            if not g:
+        for key_i, group_i in itertools.groupby(self.__entries, key=key):
+            group_i = list(group_i)
+            if not group_i:
                 continue
-            size = len(g)
+            size = len(group_i)
 
             # Chunk the nested pages
-            nested.extend(_GroupByEntry(
-                key=k, items=g[i:i+per_page]) for i in range(0, size, per_page))
+            nested.extend(
+                _GroupByEntry(key=key_i, items=group_i[i:i+per_page])
+                for i in range(0, size, per_page)
+            )
 
         super().__init__(nested, per_page=1)
 
-    async def get_page(self, page_number):
+    async def get_page(self, page_number: int) -> DataType:
         return self.entries[page_number]
 
-    async def format_page(self, menu, entry):
+    async def format_page(self, menu: Menu, entry: _GroupByEntry) -> SendKwargsType:
         """An abstract method to format the page.
 
         This works similar to the :meth:`ListPageSource.format_page` except
@@ -269,19 +280,19 @@ class AsyncIteratorPageSource(PageSource):
 
     Parameters
     ------------
-    iter: AsyncIterator[Any]
+    iterator: AsyncIterator[Any]
         The asynchronous iterator to paginate.
     per_page: :class:`int`
         How many elements to have per page.
     """
 
-    def __init__(self, iterator, *, per_page):
+    def __init__(self, iterator: AsyncIterator[DataType], *, per_page: int):
         self.iterator = _aiter(iterator)
         self.per_page = per_page
         self._exhausted = False
-        self._cache = []
+        self._cache: List[DataType] = []
 
-    async def _iterate(self, n):
+    async def _iterate(self, n: int):
         it = self.iterator
         cache = self._cache
         for _ in range(0, n):
@@ -297,11 +308,11 @@ class AsyncIteratorPageSource(PageSource):
         # Iterate until we have at least a bit more single page
         await self._iterate(self.per_page + 1)
 
-    def is_paginating(self):
+    def is_paginating(self) -> bool:
         """:class:`bool`: Whether pagination is required."""
         return len(self._cache) > self.per_page
 
-    async def _get_single_page(self, page_number):
+    async def _get_single_page(self, page_number: int) -> DataType:
         if page_number < 0:
             raise IndexError('Negative page number.')
 
@@ -309,7 +320,7 @@ class AsyncIteratorPageSource(PageSource):
             await self._iterate((page_number + 1) - len(self._cache))
         return self._cache[page_number]
 
-    async def _get_page_range(self, page_number):
+    async def _get_page_range(self, page_number: int) -> List[DataType]:
         if page_number < 0:
             raise IndexError('Negative page number.')
 
@@ -323,7 +334,7 @@ class AsyncIteratorPageSource(PageSource):
             raise IndexError('Went too far')
         return entries
 
-    async def get_page(self, page_number):
+    async def get_page(self, page_number: int) -> Union[DataType, List[DataType]]:
         """Returns either a single element of the sequence or
         a slice of the sequence.
 

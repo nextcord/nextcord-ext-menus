@@ -80,7 +80,7 @@ class MenuPagesBase(ButtonMenu):
         kwargs = await self._get_kwargs_from_page(page)
         await self.message.edit(**kwargs)
 
-    async def send_initial_message(self, ctx, channel: nextcord.abc.Messageable) -> nextcord.Message:
+    async def send_initial_message(self, ctx: commands.Context, channel: nextcord.abc.Messageable) -> nextcord.Message:
         """|coro|
 
         The default implementation of :meth:`Menu.send_initial_message`
