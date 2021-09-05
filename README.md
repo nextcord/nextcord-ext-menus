@@ -220,13 +220,13 @@ A `ButtonMenuPages` class is provided for pagination with button components.
 
 `ButtonMenuPages` works the same way as the `MenuPages` class found above, but with button components instead of reactions.
 
-A `ButtonStyle` can optionally be passed in to customize the appearance.
+A `ButtonStyle` can optionally be passed in to customize the appearance of the buttons.
 
 `MySource` is the same as defined above, but the menu is instantiated with:
 
 ```py
-pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), 
-                              clear_buttons_after=True, style=nextcord.ButtonStyle.primary)
+pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), clear_buttons_after=True, 
+                              style=nextcord.ButtonStyle.primary)
 await pages.start(ctx)
 ```
 
