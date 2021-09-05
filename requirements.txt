@@ -1,2 +1,1 @@
 nextcord
-nextcord-ext-menus
