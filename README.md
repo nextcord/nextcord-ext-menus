@@ -225,7 +225,8 @@ A `ButtonStyle` can optionally be passed in to customize the appearance.
 `MySource` is the same as defined above, but the menu is instantiated with:
 
 ```py
-pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), style=nextcord.ButtonStyle.primary)
+pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), 
+                              clear_buttons_after=True, style=nextcord.ButtonStyle.primary)
 await pages.start(ctx)
 ```
 

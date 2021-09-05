@@ -500,7 +500,10 @@ class Menu(metaclass=_MenuMeta):
             if self.bot.is_closed():
                 return
 
-            await self.clear()
+            if self.delete_message_after:
+                await self.message.delete()
+            elif self.clear_reactions_after:
+                await self.clear()
 
     async def update(self, payload: nextcord.RawReactionActionEvent):
         """|coro|
@@ -690,10 +693,18 @@ class ButtonMenu(Menu, nextcord.ui.View):
     this expects the methods to have two parameters, the ``button`` and the ``interaction``.
     The ``button`` is of type :class:`nextcord.ui.Button`.
     The ``interaction`` is of type :class:`nextcord.Interaction`.
+
+    Attributes
+    ------------
+
+    clear_buttons_after: :class:`bool`
+        Whether to clear buttons after the menu interaction is done.
+        Note that :attr:`delete_message_after` takes priority over this attribute.
     """
 
-    def __init__(self, timeout: float = DEFAULT_TIMEOUT, *args, **kwargs):
-        Menu.__init__(self, timeout=timeout, *args, **kwargs)
+    def __init__(self, timeout: float = DEFAULT_TIMEOUT, clear_buttons_after: bool = False, *args, **kwargs):
+        Menu.__init__(self, timeout=timeout,
+                      clear_reactions_after=clear_buttons_after, *args, **kwargs)
         nextcord.ui.View.__init__(self, timeout=timeout)
 
     async def _update_view(self):
