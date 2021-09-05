@@ -734,7 +734,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
     async def clear(self):
         """|coro|
 
-        Removes all components in the menu.
+        Removes all :class:`nextcord.ui.Button` components in the menu.
         """
         self.clear_items()
         await self._update_view()
