@@ -389,28 +389,7 @@ class Menu(metaclass=_MenuMeta):
 
         if react:
             if self.__tasks:
-                async def wrapped():
-                    # A fast path if we have permissions
-                    if self._can_remove_reactions:
-                        try:
-                            del self.buttons
-                        except AttributeError:
-                            pass
-                        finally:
-                            await self.message.clear_reactions()
-                        return
-
-                    # Remove the cache (the next call will have the updated buttons)
-                    reactions = list(self.buttons.keys())
-                    try:
-                        del self.buttons
-                    except AttributeError:
-                        pass
-
-                    for reaction in reactions:
-                        await self.message.remove_reaction(reaction, self.__me)
-
-                return wrapped()
+                return self.clear
 
             async def dummy():
                 raise MenuError('Menu has not been started yet')
@@ -521,23 +500,7 @@ class Menu(metaclass=_MenuMeta):
             if self.bot.is_closed():
                 return
 
-            # Wrap it in another block anyway just to ensure
-            # nothing leaks out during clean-up
-            try:
-                if self.delete_message_after:
-                    return await self.message.delete()
-
-                if self.clear_reactions_after:
-                    if self._can_remove_reactions:
-                        return await self.message.clear_reactions()
-
-                    for button_emoji in self.buttons:
-                        try:
-                            await self.message.remove_reaction(button_emoji, self.__me)
-                        except nextcord.HTTPException:
-                            continue
-            except Exception:
-                pass
+            await self.clear()
 
     async def update(self, payload: nextcord.RawReactionActionEvent):
         """|coro|
@@ -678,6 +641,39 @@ class Menu(metaclass=_MenuMeta):
             The message that has been sent.
         """
         raise NotImplementedError
+
+    async def clear(self):
+        """|coro|
+
+        Removes all reaction buttons in the menu.
+        """
+        # Wrap it in another block anyway just to ensure
+        # nothing leaks out during clean-up
+        try:
+            # A fast path if we have permissions
+            if self._can_remove_reactions:
+                try:
+                    del self.buttons
+                except AttributeError:
+                    pass
+                finally:
+                    await self.message.clear_reactions()
+                return
+
+            # Remove the cache (the next call will have the updated buttons)
+            reactions = list(self.buttons.keys())
+            try:
+                del self.buttons
+            except AttributeError:
+                pass
+
+            for reaction in reactions:
+                try:
+                    await self.message.remove_reaction(reaction, self.__me)
+                except nextcord.HTTPException:
+                    continue
+        except Exception:
+            pass
 
     def stop(self):
         """Stops the internal loop."""

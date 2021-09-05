@@ -4,12 +4,12 @@ import nextcord
 from nextcord.ext import commands
 
 from .constants import EmojiType, PageFormatType, SendKwargsType
-from .menus import ButtonMenu, button
+from .menus import ButtonMenu, Menu, button
 from .page_source import PageSource
 from .utils import First, Last, _cast_emoji
 
 
-class MenuPagesBase(ButtonMenu):
+class MenuPagesBase(Menu):
     """A base class dedicated to pagination for reaction and button menus.
 
     Attributes
@@ -197,7 +197,7 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
         await interaction.response.edit_message(view=view)
 
 
-class ButtonMenuPages(MenuPagesBase):
+class ButtonMenuPages(MenuPagesBase, ButtonMenu):
     """A special type of Menu dedicated to pagination with button components.
 
     Parameters
