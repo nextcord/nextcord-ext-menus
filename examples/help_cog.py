@@ -1,3 +1,10 @@
+"""
+This is an example of a Help Cog with button component pagination.
+
+The basic embed help command is based on this gist by Rapptz:
+https://gist.github.com/Rapptz/31a346ed1eb545ddeb0d451d81a60b3b
+"""
+
 from dataclasses import dataclass
 
 import nextcord
