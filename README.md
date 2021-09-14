@@ -200,11 +200,16 @@ Also note that `view=self` is passed with the initial message and `nextcord.ui.b
 
 `ButtonMenu.enable` can be used to enable all buttons in the menu.
 
+Additionally, `disable_buttons_after` can be used as a kwarg to ButtonMenu to disable all buttons when the menu stops and `clear_buttons_after` can be used to remove them.
+
 ```py
 import nextcord
 from nextcord.ext import menus
 
 class MyButtonMenu(menus.ButtonMenu):
+    def __init__(self):
+        super().__init__(disable_buttons_after=True)
+
     async def send_initial_message(self, ctx, channel):
         return await channel.send(f'Hello {ctx.author}', view=self)
 
@@ -218,7 +223,6 @@ class MyButtonMenu(menus.ButtonMenu):
 
     @nextcord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, button, interaction):
-        await self.disable()
         self.stop()
 ```
 
