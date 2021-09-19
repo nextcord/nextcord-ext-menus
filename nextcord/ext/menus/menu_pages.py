@@ -218,6 +218,9 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
     def __init__(self, source: PageSource, style: nextcord.ButtonStyle = nextcord.ButtonStyle.secondary, **kwargs):
         self.__button_menu_pages__ = True
         super().__init__(source, **kwargs)
+        # skip adding buttons if inherit_buttons=False was passed to metaclass
+        if not self.__inherit_buttons__:
+            return
         # add buttons to the view
         for emoji in (self.FIRST_PAGE, self.PREVIOUS_PAGE, self.NEXT_PAGE, self.LAST_PAGE, self.STOP):
             if emoji in {self.FIRST_PAGE, self.LAST_PAGE} and self._skip_double_triangle_buttons():
