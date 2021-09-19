@@ -182,6 +182,7 @@ class _MenuMeta(type):
                 else:
                     buttons.append(value)
 
+        new_cls.__inherit_buttons__ = inherit_buttons
         new_cls.__menu_buttons__ = buttons
         return new_cls
 
