@@ -167,14 +167,17 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
     A custom button for pagination that will be disabled when unavailable.
     """
 
-    def __init__(self, style: nextcord.ButtonStyle, emoji: EmojiType):
-        super().__init__(style=style, emoji=emoji)
-        self._emoji = _cast_emoji(emoji)
+    def __init__(self, emoji: Optional[EmojiType] = None, **kwargs):
+        super().__init__(emoji=emoji, **kwargs)
+        self._emoji = _cast_emoji(emoji) if emoji else None
 
     async def callback(self, interaction: nextcord.Interaction):
         """
         Callback for when this button is pressed
         """
+        if not isinstance(self._emoji, nextcord.Emoji):
+            return
+
         assert self.view is not None
         view: ButtonMenuPages = self.view
 
@@ -225,7 +228,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         for emoji in (self.FIRST_PAGE, self.PREVIOUS_PAGE, self.NEXT_PAGE, self.LAST_PAGE, self.STOP):
             if emoji in {self.FIRST_PAGE, self.LAST_PAGE} and self._skip_double_triangle_buttons():
                 continue
-            self.add_item(MenuPaginationButton(style=style, emoji=emoji))
+            self.add_item(MenuPaginationButton(emoji=emoji, style=style))
         self._disable_unavailable_buttons()
 
     def _disable_unavailable_buttons(self):
