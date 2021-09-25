@@ -175,7 +175,7 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
         """
         Callback for when this button is pressed
         """
-        if not isinstance(self._emoji, nextcord.Emoji):
+        if self._emoji is None:
             return
 
         assert self.view is not None
