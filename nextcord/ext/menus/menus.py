@@ -182,6 +182,7 @@ class _MenuMeta(type):
                 else:
                     buttons.append(value)
 
+        new_cls.__inherit_buttons__ = inherit_buttons
         new_cls.__menu_buttons__ = buttons
         return new_cls
 
@@ -502,8 +503,10 @@ class Menu(metaclass=_MenuMeta):
 
             if self.delete_message_after:
                 await self.message.delete()
-            elif self.clear_reactions_after:
+            elif getattr(self, "clear_buttons_after", self.clear_reactions_after):
                 await self.clear()
+            elif getattr(self, "disable_buttons_after", None):
+                await self.disable()
 
     async def update(self, payload: nextcord.RawReactionActionEvent):
         """|coro|
@@ -700,12 +703,17 @@ class ButtonMenu(Menu, nextcord.ui.View):
     clear_buttons_after: :class:`bool`
         Whether to clear buttons after the menu interaction is done.
         Note that :attr:`delete_message_after` takes priority over this attribute.
+    disable_buttons_after: :class:`bool`
+        Whether to disable all buttons after the menu interaction is done.
+        Note that :attr:`delete_message_after` and :attr:`clear_buttons_after` take priority over this attribute.
     """
 
-    def __init__(self, timeout: float = DEFAULT_TIMEOUT, clear_buttons_after: bool = False, *args, **kwargs):
-        kwargs["clear_reactions_after"] = kwargs.get("clear_reactions_after", clear_buttons_after)
+    def __init__(self, timeout: float = DEFAULT_TIMEOUT, clear_buttons_after: bool = False,
+                 disable_buttons_after: bool = False, *args, **kwargs):
         Menu.__init__(self, timeout=timeout, *args, **kwargs)
         nextcord.ui.View.__init__(self, timeout=timeout)
+        self.clear_buttons_after = clear_buttons_after
+        self.disable_buttons_after = disable_buttons_after
 
     async def _update_view(self):
         await self.message.edit(view=self)
