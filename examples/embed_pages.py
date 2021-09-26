@@ -45,8 +45,8 @@ class MyEmbedDescriptionPageSource(menus.ListPageSource):
         return embed
 
 
-@bot.command(aliases=["bdf"])
-async def button_description_field(ctx):
+@bot.command(aliases=["bed"])
+async def button_embed_description(ctx):
     data = [f'Description for entry #{num}' for num in range(1, 51)]
     pages = menus.ButtonMenuPages(
         source=MyEmbedDescriptionPageSource(data),
