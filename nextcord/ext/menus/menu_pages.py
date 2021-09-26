@@ -167,8 +167,9 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
     A custom button for pagination that will be disabled when unavailable.
     """
 
-    def __init__(self, emoji: Optional[EmojiType] = None, **kwargs):
-        super().__init__(emoji=emoji, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        emoji = kwargs.get(emoji, None)
         self._emoji = _cast_emoji(emoji) if emoji else None
 
     async def callback(self, interaction: nextcord.Interaction):
