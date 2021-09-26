@@ -169,7 +169,7 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        emoji = kwargs.get(emoji, None)
+        emoji = kwargs.get("emoji", None)
         self._emoji = _cast_emoji(emoji) if emoji else None
 
     async def callback(self, interaction: nextcord.Interaction):
