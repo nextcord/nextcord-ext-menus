@@ -167,14 +167,18 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
     A custom button for pagination that will be disabled when unavailable.
     """
 
-    def __init__(self, style: nextcord.ButtonStyle, emoji: EmojiType):
-        super().__init__(style=style, emoji=emoji)
-        self._emoji = _cast_emoji(emoji)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        emoji = kwargs.get("emoji", None)
+        self._emoji = _cast_emoji(emoji) if emoji else None
 
     async def callback(self, interaction: nextcord.Interaction):
         """
         Callback for when this button is pressed
         """
+        if self._emoji is None:
+            return
+
         assert self.view is not None
         view: ButtonMenuPages = self.view
 
@@ -193,8 +197,7 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
 
         # disable all buttons if stop is pressed
         if self._emoji.name == view.STOP:
-            await view.disable()
-            view.stop()
+            return view.stop()
 
         # update the view
         await interaction.response.edit_message(view=view)
@@ -217,6 +220,8 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
 
     def __init__(self, source: PageSource, style: nextcord.ButtonStyle = nextcord.ButtonStyle.secondary, **kwargs):
         self.__button_menu_pages__ = True
+        # make button pagination disable buttons on stop by default unless it's overridden
+        kwargs["disable_buttons_after"] = kwargs.get("disable_buttons_after", True)
         super().__init__(source, **kwargs)
         # skip adding buttons if inherit_buttons=False was passed to metaclass
         if not self.__inherit_buttons__:
@@ -225,7 +230,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         for emoji in (self.FIRST_PAGE, self.PREVIOUS_PAGE, self.NEXT_PAGE, self.LAST_PAGE, self.STOP):
             if emoji in {self.FIRST_PAGE, self.LAST_PAGE} and self._skip_double_triangle_buttons():
                 continue
-            self.add_item(MenuPaginationButton(style=style, emoji=emoji))
+            self.add_item(MenuPaginationButton(emoji=emoji, style=style))
         self._disable_unavailable_buttons()
 
     def _disable_unavailable_buttons(self):
