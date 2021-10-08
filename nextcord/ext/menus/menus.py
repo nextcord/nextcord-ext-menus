@@ -729,7 +729,8 @@ class ButtonMenu(Menu, nextcord.ui.View):
             Whether to disable or enable the buttons.
         """
         for child in self.children:
-            child.disabled = disable
+            if isinstance(child, nextcord.ui.Button):
+                child.disabled = disable
         await self._update_view()
 
     async def enable(self):
