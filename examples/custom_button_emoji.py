@@ -6,14 +6,23 @@ bot = commands.Bot(command_prefix="$")
 
 
 class CustomEmojiButtonMenuPages(menus.ButtonMenuPages):
-    """This class overrides the default ButtonMenuPages replacing the emoji attributes"""
+    """
+    This class overrides the default ButtonMenuPages replacing the emoji attributes
 
-    # Note: for custom emojis to work, the emoji must be in a server that the bot is in
+    Emojis can be specified in any of the following string formats:
+    - <:name:id> for custom emojis
+    - <a:name:id> for custom animated emojis
+    - A string containing the unicode emoji's name in the format \N{name}
+    - A string containing the unicode emoji character
+
+    Note: for custom emojis to work, the emoji must be in a server that the bot is in.
+    """
+
     FIRST_PAGE = "<:pagefirst:899973860772962344>"
     LAST_PAGE = "<:pagelast:899973860810694686>"
     PREVIOUS_PAGE = "\N{WHITE LEFT POINTING BACKHAND INDEX}"
     NEXT_PAGE = "\N{WHITE RIGHT POINTING BACKHAND INDEX}"
-    STOP = "🛑"
+    STOP = "\N{OCTAGONAL SIGN}"
 
 
 class MySource(menus.ListPageSource):
