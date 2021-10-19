@@ -6,7 +6,7 @@ bot = commands.Bot(command_prefix="$")
 
 
 class CustomEmojiButtonMenuPages(menus.ButtonMenuPages):
-    """
+    r"""
     This class overrides the default ButtonMenuPages replacing the emoji attributes
 
     Emojis can be specified in any of the following string formats:
