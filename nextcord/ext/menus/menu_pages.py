@@ -133,6 +133,11 @@ class MenuPages(MenuPagesBase):
     """
 
     def __init__(self, source: PageSource, **kwargs):
+        # update reaction button emojis in case they have been overridden by a derived class
+        pagination_emojis = (self.FIRST_PAGE, self.PREVIOUS_PAGE,
+                             self.NEXT_PAGE, self.LAST_PAGE, self.STOP)
+        for emoji, func in zip(pagination_emojis, self.__menu_buttons__):
+            func.__menu_button__ = _cast_emoji(emoji)
         super().__init__(source, **kwargs)
 
     @button(MenuPagesBase.FIRST_PAGE, position=First(0), skip_if=MenuPagesBase._skip_double_triangle_buttons)
