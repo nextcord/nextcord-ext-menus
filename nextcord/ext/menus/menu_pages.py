@@ -142,7 +142,8 @@ class MenuPages(MenuPagesBase):
                 "go_to_last_page": self.LAST_PAGE,
                 "stop_pages": self.STOP,
             }.get(func.__name__, None)
-            if not emoji:
+            # skip if not a pagination function or the function was defined in a subclass
+            if not emoji or not func.__qualname__.startswith("MenuPages"):
                 continue
             func.__menu_button__ = _cast_emoji(emoji)
         super().__init__(source, **kwargs)
