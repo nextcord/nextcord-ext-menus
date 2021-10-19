@@ -134,9 +134,16 @@ class MenuPages(MenuPagesBase):
 
     def __init__(self, source: PageSource, **kwargs):
         # update reaction button emojis in case they have been overridden by a derived class
-        pagination_emojis = (self.FIRST_PAGE, self.PREVIOUS_PAGE,
-                             self.NEXT_PAGE, self.LAST_PAGE, self.STOP)
-        for emoji, func in zip(pagination_emojis, self.__menu_buttons__):
+        for func in self.__menu_buttons__:
+            emoji = {
+                "go_to_first_page": self.FIRST_PAGE,
+                "go_to_previous_page": self.PREVIOUS_PAGE,
+                "go_to_next_page": self.NEXT_PAGE,
+                "go_to_last_page": self.LAST_PAGE,
+                "stop_pages": self.STOP,
+            }.get(func.__name__, None)
+            if not emoji:
+                continue
             func.__menu_button__ = _cast_emoji(emoji)
         super().__init__(source, **kwargs)
 
