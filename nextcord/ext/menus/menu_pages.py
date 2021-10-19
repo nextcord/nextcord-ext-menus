@@ -237,10 +237,11 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         """
         Disables buttons that are unavailable to be pressed.
         """
-        buttons: List[MenuPaginationButton] = self.children
+        children: List[MenuPaginationButton] = self.children
         max_pages = self._source.get_max_pages()
-        for button in buttons:
-            if button.emoji.name in (self.FIRST_PAGE, self.PREVIOUS_PAGE):
-                button.disabled = self.current_page == 0
-            elif max_pages and button.emoji.name in (self.LAST_PAGE, self.NEXT_PAGE):
-                button.disabled = self.current_page == max_pages - 1
+        for child in children:
+            if isinstance(child, nextcord.ui.Button):
+                if child.emoji.name in (self.FIRST_PAGE, self.PREVIOUS_PAGE):
+                    child.disabled = self.current_page == 0
+                elif max_pages and child.emoji.name in (self.LAST_PAGE, self.NEXT_PAGE):
+                    child.disabled = self.current_page == max_pages - 1
