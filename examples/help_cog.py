@@ -12,6 +12,8 @@ from nextcord.ext import commands, menus
 
 
 class HelpPageSource(menus.ListPageSource):
+    """Page source for dividing the list of tuples into pages and displaying them in embeds"""
+
     def __init__(self, help_command: "NewHelpCommand", data: List[Tuple[str, str]]):
         self._help_command = help_command
         # you can set here how many items to display per page
@@ -38,6 +40,7 @@ class HelpPageSource(menus.ListPageSource):
 
 
 class HelpButtonMenuPages(menus.ButtonMenuPages):
+    """Subclass of ButtonMenuPages to add an interaction_check"""
 
     def __init__(self, ctx: commands.Context, **kwargs):
         super().__init__(**kwargs)
@@ -49,7 +52,7 @@ class HelpButtonMenuPages(menus.ButtonMenuPages):
 
 
 class NewHelpCommand(commands.MinimalHelpCommand):
-    """Custom help command override using embeds"""
+    """Custom help command override using embeds and button pagination"""
 
     # embed colour
     COLOUR = nextcord.Colour.blurple()
