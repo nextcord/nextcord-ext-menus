@@ -3,8 +3,8 @@ from typing import Any, List, Optional
 import nextcord
 from nextcord.ext import commands
 
-from .constants import EmojiType, PageFormatType, SendKwargsType
-from .menus import ButtonMenu, Menu, button
+from .constants import PageFormatType, SendKwargsType
+from .menus import Button, ButtonMenu, Menu
 from .page_source import PageSource
 from .utils import First, Last, _cast_emoji
 
@@ -133,43 +133,38 @@ class MenuPages(MenuPagesBase):
     """
 
     def __init__(self, source: PageSource, **kwargs):
-        # update reaction button emojis in case they have been overridden by a derived class
-        for func in self.__menu_buttons__:
-            emoji = {
-                "go_to_first_page": self.FIRST_PAGE,
-                "go_to_previous_page": self.PREVIOUS_PAGE,
-                "go_to_next_page": self.NEXT_PAGE,
-                "go_to_last_page": self.LAST_PAGE,
-                "stop_pages": self.STOP,
-            }.get(func.__name__, None)
-            # skip if not a pagination function or the function was defined in a subclass
-            if not emoji or not func.__qualname__.startswith("MenuPages"):
-                continue
-            func.__menu_button__ = _cast_emoji(emoji)
         super().__init__(source, **kwargs)
+        # skip adding buttons if inherit_buttons=False was passed to metaclass
+        if not self.__inherit_buttons__:
+            return
+        # add pagination reaction buttons
+        self.add_button(Button(self.FIRST_PAGE, self.go_to_first_page,
+                               position=First(0), skip_if=self._skip_double_triangle_buttons))
+        self.add_button(Button(self.PREVIOUS_PAGE, self.go_to_previous_page,
+                               position=First(1)))
+        self.add_button(Button(self.NEXT_PAGE, self.go_to_next_page,
+                               position=Last(0)))
+        self.add_button(Button(self.LAST_PAGE, self.go_to_last_page,
+                               position=Last(1), skip_if=self._skip_double_triangle_buttons))
+        self.add_button(Button(self.STOP, self.stop_pages, position=Last(2)))
 
-    @button(MenuPagesBase.FIRST_PAGE, position=First(0), skip_if=MenuPagesBase._skip_double_triangle_buttons)
     async def go_to_first_page(self, payload):
         """go to the first page"""
         await self.show_page(0)
 
-    @button(MenuPagesBase.PREVIOUS_PAGE, position=First(1))
     async def go_to_previous_page(self, payload):
         """go to the previous page"""
         await self.show_checked_page(self.current_page - 1)
 
-    @button(MenuPagesBase.NEXT_PAGE, position=Last(0))
     async def go_to_next_page(self, payload):
         """go to the next page"""
         await self.show_checked_page(self.current_page + 1)
 
-    @button(MenuPagesBase.LAST_PAGE, position=Last(1), skip_if=MenuPagesBase._skip_double_triangle_buttons)
     async def go_to_last_page(self, payload):
         """go to the last page"""
         # The call here is safe because it's guarded by skip_if
         await self.show_page(self._source.get_max_pages() - 1)
 
-    @button(MenuPagesBase.STOP, position=Last(2))
     async def stop_pages(self, payload):
         """stops the pagination session."""
         self.stop()
