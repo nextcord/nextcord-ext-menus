@@ -183,20 +183,20 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
         view: ButtonMenuPages = self.view
 
         # change the current page
-        if self._emoji.name == view.FIRST_PAGE:
+        if str(self._emoji) == view.FIRST_PAGE:
             await view.show_page(0)
-        elif self._emoji.name == view.PREVIOUS_PAGE:
+        elif str(self._emoji) == view.PREVIOUS_PAGE:
             await view.show_checked_page(view.current_page - 1)
-        elif self._emoji.name == view.NEXT_PAGE:
+        elif str(self._emoji) == view.NEXT_PAGE:
             await view.show_checked_page(view.current_page + 1)
-        elif self._emoji.name == view.LAST_PAGE:
+        elif str(self._emoji) == view.LAST_PAGE:
             await view.show_page(view._source.get_max_pages() - 1)
 
         # disable buttons that are unavailable
         view._disable_unavailable_buttons()
 
         # disable all buttons if stop is pressed
-        if self._emoji.name == view.STOP:
+        if str(self._emoji) == view.STOP:
             return view.stop()
 
         # update the view
@@ -241,7 +241,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         max_pages = self._source.get_max_pages()
         for child in children:
             if isinstance(child, nextcord.ui.Button):
-                if child.emoji.name in (self.FIRST_PAGE, self.PREVIOUS_PAGE):
+                if str(child.emoji) in (self.FIRST_PAGE, self.PREVIOUS_PAGE):
                     child.disabled = self.current_page == 0
-                elif max_pages and child.emoji.name in (self.LAST_PAGE, self.NEXT_PAGE):
+                elif max_pages and str(child.emoji) in (self.LAST_PAGE, self.NEXT_PAGE):
                     child.disabled = self.current_page == max_pages - 1
