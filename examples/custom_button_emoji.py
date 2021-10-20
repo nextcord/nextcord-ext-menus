@@ -1,5 +1,5 @@
 r"""
-This example shows how to overwrite the default emojis in pagination menus.
+This example shows how to overwrite the default emojis in pagination menus
 
 The emojis can be overridden for both button menus (ButtonMenuPages) and reaction menus (MenuPages)
 
@@ -9,7 +9,7 @@ Emojis can be specified in any of the following string formats:
 - A string containing the unicode emoji's name in the format \N{name}
 - A string containing the unicode emoji character
 
-Note: for custom emojis to work, the emoji must be in a server that the bot is in.
+Note: for custom emojis to work in reaction menus, the emoji must be in a server that the bot is in
 """
 
 from nextcord.ext import commands, menus
