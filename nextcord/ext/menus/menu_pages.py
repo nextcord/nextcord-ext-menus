@@ -3,8 +3,8 @@ from typing import Any, List, Optional
 import nextcord
 from nextcord.ext import commands
 
-from .constants import EmojiType, PageFormatType, SendKwargsType
-from .menus import ButtonMenu, Menu, button
+from .constants import PageFormatType, SendKwargsType
+from .menus import Button, ButtonMenu, Menu
 from .page_source import PageSource
 from .utils import First, Last, _cast_emoji
 
@@ -121,6 +121,27 @@ class MenuPagesBase(Menu):
             return True
         return max_pages <= 2
 
+    async def go_to_first_page(self, payload=None):
+        """go to the first page"""
+        await self.show_page(0)
+
+    async def go_to_previous_page(self, payload=None):
+        """go to the previous page"""
+        await self.show_checked_page(self.current_page - 1)
+
+    async def go_to_next_page(self, payload=None):
+        """go to the next page"""
+        await self.show_checked_page(self.current_page + 1)
+
+    async def go_to_last_page(self, payload=None):
+        """go to the last page"""
+        # The call here is safe because it's guarded by skip_if
+        await self.show_page(self._source.get_max_pages() - 1)
+
+    async def stop_pages(self, payload=None):
+        """stops the pagination session."""
+        self.stop()
+
 
 class MenuPages(MenuPagesBase):
     """A special type of Menu dedicated to pagination with reactions.
@@ -134,32 +155,22 @@ class MenuPages(MenuPagesBase):
 
     def __init__(self, source: PageSource, **kwargs):
         super().__init__(source, **kwargs)
-
-    @button(MenuPagesBase.FIRST_PAGE, position=First(0), skip_if=MenuPagesBase._skip_double_triangle_buttons)
-    async def go_to_first_page(self, payload):
-        """go to the first page"""
-        await self.show_page(0)
-
-    @button(MenuPagesBase.PREVIOUS_PAGE, position=First(1))
-    async def go_to_previous_page(self, payload):
-        """go to the previous page"""
-        await self.show_checked_page(self.current_page - 1)
-
-    @button(MenuPagesBase.NEXT_PAGE, position=Last(0))
-    async def go_to_next_page(self, payload):
-        """go to the next page"""
-        await self.show_checked_page(self.current_page + 1)
-
-    @button(MenuPagesBase.LAST_PAGE, position=Last(1), skip_if=MenuPagesBase._skip_double_triangle_buttons)
-    async def go_to_last_page(self, payload):
-        """go to the last page"""
-        # The call here is safe because it's guarded by skip_if
-        await self.show_page(self._source.get_max_pages() - 1)
-
-    @button(MenuPagesBase.STOP, position=Last(2))
-    async def stop_pages(self, payload):
-        """stops the pagination session."""
-        self.stop()
+        # skip adding buttons if inherit_buttons=False was passed to metaclass
+        if not self.__inherit_buttons__:
+            return
+        # add pagination reaction buttons
+        buttons = (
+            Button(self.FIRST_PAGE, self.go_to_first_page,
+                   position=First(0), skip_if=self._skip_double_triangle_buttons),
+            Button(self.PREVIOUS_PAGE,
+                   self.go_to_previous_page, position=First(1)),
+            Button(self.NEXT_PAGE, self.go_to_next_page, position=Last(0)),
+            Button(self.LAST_PAGE, self.go_to_last_page,
+                   position=Last(1), skip_if=self._skip_double_triangle_buttons),
+            Button(self.STOP, self.stop_pages, position=Last(2)),
+        )
+        for button in buttons:
+            self.add_button(button)
 
 
 class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
@@ -183,20 +194,20 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
         view: ButtonMenuPages = self.view
 
         # change the current page
-        if self._emoji.name == view.FIRST_PAGE:
-            await view.show_page(0)
-        elif self._emoji.name == view.PREVIOUS_PAGE:
-            await view.show_checked_page(view.current_page - 1)
-        elif self._emoji.name == view.NEXT_PAGE:
-            await view.show_checked_page(view.current_page + 1)
-        elif self._emoji.name == view.LAST_PAGE:
-            await view.show_page(view._source.get_max_pages() - 1)
+        if str(self._emoji) == view.FIRST_PAGE:
+            await view.go_to_first_page()
+        elif str(self._emoji) == view.PREVIOUS_PAGE:
+            await view.go_to_previous_page()
+        elif str(self._emoji) == view.NEXT_PAGE:
+            await view.go_to_next_page()
+        elif str(self._emoji) == view.LAST_PAGE:
+            await view.go_to_last_page()
 
         # disable buttons that are unavailable
         view._disable_unavailable_buttons()
 
         # disable all buttons if stop is pressed
-        if self._emoji.name == view.STOP:
+        if str(self._emoji) == view.STOP:
             return view.stop()
 
         # update the view
@@ -221,7 +232,8 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
     def __init__(self, source: PageSource, style: nextcord.ButtonStyle = nextcord.ButtonStyle.secondary, **kwargs):
         self.__button_menu_pages__ = True
         # make button pagination disable buttons on stop by default unless it's overridden
-        kwargs["disable_buttons_after"] = kwargs.get("disable_buttons_after", True)
+        if "disable_buttons_after" not in kwargs:
+            kwargs["disable_buttons_after"] = True
         super().__init__(source, **kwargs)
         # skip adding buttons if inherit_buttons=False was passed to metaclass
         if not self.__inherit_buttons__:
@@ -241,7 +253,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         max_pages = self._source.get_max_pages()
         for child in children:
             if isinstance(child, nextcord.ui.Button):
-                if child.emoji.name in (self.FIRST_PAGE, self.PREVIOUS_PAGE):
+                if str(child.emoji) in (self.FIRST_PAGE, self.PREVIOUS_PAGE):
                     child.disabled = self.current_page == 0
-                elif max_pages and child.emoji.name in (self.LAST_PAGE, self.NEXT_PAGE):
+                elif max_pages and str(child.emoji) in (self.LAST_PAGE, self.NEXT_PAGE):
                     child.disabled = self.current_page == max_pages - 1
