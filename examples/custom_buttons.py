@@ -10,24 +10,28 @@ class CustomButtonMenuPages(menus.ButtonMenuPages, inherit_buttons=False):
     This class overrides the default ButtonMenuPages without inheriting the buttons
     by setting inherit_buttons to False.
 
-    This allows us to add our own buttons with custom labels, colors, or even callbacks. 
+    This allows us to add our own buttons with custom labels, styles, or even callbacks. 
     """
 
     def __init__(self, source, timeout=60):
         super().__init__(source, timeout=timeout)
-        # Note: for the default button callback to work, the emoji must be the same.
-        # None of the buttons are required; you can leave any of them out.
+        
+        # You can change the buttons to have custom labels and styles by setting
+        # inherit_buttons=False above and adding them with self.add_item as shown below.
+        # Note: None of the buttons are required you can leave any of them out
         self.add_item(menus.MenuPaginationButton(emoji=self.FIRST_PAGE, label="First"))
         self.add_item(menus.MenuPaginationButton(emoji=self.PREVIOUS_PAGE, label="Prev"))
         self.add_item(menus.MenuPaginationButton(emoji=self.NEXT_PAGE, label="Next"))
         self.add_item(menus.MenuPaginationButton(emoji=self.LAST_PAGE, label="Last"))
-        # place the Stop button (first button) at the end of the list
+        
+        # Rearrange the buttons (place the Stop button (first button) at the end of the list)
         self.children = self.children[1:] + self.children[:1]
-        # disable buttons that are unavailable to be pressed
+        
+        # Disable buttons that are unavailable to be pressed at the start
         self._disable_unavailable_buttons()
 
-    # To change the emoji or callback function, we can use the UI button decorator
-    @nextcord.ui.button(emoji="\N{CROSS MARK}", label="Stop")
+    # To change the callback function, we can use the button decorator
+    @nextcord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}", label="Stop")
     async def stop_button(self, button, interaction):
         await interaction.response.send_message("You pressed stop.", ephemeral=True)
         self.stop()
