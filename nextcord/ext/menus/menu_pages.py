@@ -69,6 +69,7 @@ class MenuPagesBase(Menu):
         return self._source.is_paginating()
 
     async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
+        """Calls :meth:`PageSource.format_page` and returns a dict of send kwargs"""
         value: PageFormatType = await nextcord.utils.maybe_coroutine(self._source.format_page, self, page)
         if isinstance(value, dict):
             return value
@@ -93,8 +94,6 @@ class MenuPagesBase(Menu):
         """
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
-        if hasattr(self, '__discord_ui_view__'):
-            kwargs['view'] = self
         return await channel.send(**kwargs)
 
     async def start(self, ctx: commands.Context, *, channel: Optional[nextcord.abc.Messageable] = None, wait: Optional[bool] = False):
@@ -202,16 +201,8 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
             await view.go_to_next_page()
         elif str(self._emoji) == view.LAST_PAGE:
             await view.go_to_last_page()
-
-        # disable buttons that are unavailable
-        view._disable_unavailable_buttons()
-
-        # disable all buttons if stop is pressed
-        if str(self._emoji) == view.STOP:
+        elif str(self._emoji) == view.STOP:
             return view.stop()
-
-        # update the view
-        await interaction.response.edit_message(view=view)
 
 
 class ButtonMenuPages(MenuPagesBase, ButtonMenu):
@@ -244,6 +235,14 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
                 continue
             self.add_item(MenuPaginationButton(emoji=emoji, style=style))
         self._disable_unavailable_buttons()
+
+    async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
+        """Calls :meth:`PageSource.format_page` and returns a dict of send kwargs"""
+        kwargs = await super()._get_kwargs_from_page(page)
+        # mark unavailable buttons as disabled
+        self._disable_unavailable_buttons()
+        # add view to kwargs if it's not already there
+        return {"view": self, **kwargs}
 
     def _disable_unavailable_buttons(self):
         """
