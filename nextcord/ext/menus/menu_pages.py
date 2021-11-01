@@ -70,7 +70,7 @@ class MenuPagesBase(Menu):
 
     async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
         """|coro|
-        
+
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
         """
         value: PageFormatType = await nextcord.utils.maybe_coroutine(self._source.format_page, self, page)
@@ -209,7 +209,7 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
         elif str(self._emoji) == view.LAST_PAGE:
             await view.go_to_last_page()
         elif str(self._emoji) == view.STOP:
-            return view.stop()
+            await view.stop_pages()
 
 
 class ButtonMenuPages(MenuPagesBase, ButtonMenu):
@@ -241,6 +241,8 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
             if emoji in {self.FIRST_PAGE, self.LAST_PAGE} and self._skip_double_triangle_buttons():
                 continue
             self.add_item(MenuPaginationButton(emoji=emoji, style=style))
+        # disable buttons that are not available
+        self._disable_unavailable_buttons()
 
     async def show_page(self, page_number: int):
         """|coro|
@@ -255,7 +257,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
 
     async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
         """|coro|
-        
+
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
         """
         kwargs = await super()._get_kwargs_from_page(page)
