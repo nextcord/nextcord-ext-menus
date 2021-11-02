@@ -1,9 +1,9 @@
-Using Reaction Menus
-====================
+.. currentmodule:: nextcord.ext.menus
 
 .. _ext_menus_reaction_menus:
 
-.. currentmodule:: nextcord.ext.menus
+Using Reaction Menus
+====================
 
 To whet your appetite, the following examples show the fundamentals on
 how to create reaction menus.
@@ -13,31 +13,31 @@ reply buttons:
 
 .. code:: py
 
-   from nextcord.ext import menus
+    from nextcord.ext import menus
 
-   class MyMenu(menus.Menu):
-       async def send_initial_message(self, ctx, channel):
-           return await channel.send(f'Hello {ctx.author}')
+    class MyMenu(menus.Menu):
+        async def send_initial_message(self, ctx, channel):
+            return await channel.send(f'Hello {ctx.author}')
 
-       @menus.button('\N{THUMBS UP SIGN}')
-       async def on_thumbs_up(self, payload):
-           await self.message.edit(content=f'Thanks {self.ctx.author}!')
+        @menus.button('\N{THUMBS UP SIGN}')
+        async def on_thumbs_up(self, payload):
+            await self.message.edit(content=f'Thanks {self.ctx.author}!')
 
-       @menus.button('\N{THUMBS DOWN SIGN}')
-       async def on_thumbs_down(self, payload):
-           await self.message.edit(content=f"That's not nice {self.ctx.author}...")
+        @menus.button('\N{THUMBS DOWN SIGN}')
+        async def on_thumbs_down(self, payload):
+            await self.message.edit(content=f"That's not nice {self.ctx.author}...")
 
-       @menus.button('\N{BLACK SQUARE FOR STOP}\ufe0f')
-       async def on_stop(self, payload):
-           self.stop()
+        @menus.button('\N{BLACK SQUARE FOR STOP}\ufe0f')
+        async def on_stop(self, payload):
+            self.stop()
 
 Now, within a command we just instantiate it and we start it like so:
 
 .. code:: py
 
-   @bot.command()
-   async def menu_example(ctx):
-       await MyMenu().start(ctx)
+    @bot.command()
+    async def menu_example(ctx):
+        await MyMenu().start(ctx)
 
 If an error happens, then an exception of type :class:`MenuError` is
 raised.
@@ -47,40 +47,40 @@ and use it later:
 
 .. code:: py
 
-   from nextcord.ext import menus
+    from nextcord.ext import menus
 
-   class Confirm(menus.Menu):
-       def __init__(self, msg):
-           super().__init__(timeout=30.0, delete_message_after=True)
-           self.msg = msg
-           self.result = None
+    class Confirm(menus.Menu):
+        def __init__(self, msg):
+            super().__init__(timeout=30.0, delete_message_after=True)
+            self.msg = msg
+            self.result = None
 
-       async def send_initial_message(self, ctx, channel):
-           return await channel.send(self.msg)
+        async def send_initial_message(self, ctx, channel):
+            return await channel.send(self.msg)
 
-       @menus.button('\N{WHITE HEAVY CHECK MARK}')
-       async def do_confirm(self, payload):
-           self.result = True
-           self.stop()
+        @menus.button('\N{WHITE HEAVY CHECK MARK}')
+        async def do_confirm(self, payload):
+            self.result = True
+            self.stop()
 
-       @menus.button('\N{CROSS MARK}')
-       async def do_deny(self, payload):
-           self.result = False
-           self.stop()
+        @menus.button('\N{CROSS MARK}')
+        async def do_deny(self, payload):
+            self.result = False
+            self.stop()
 
-       async def prompt(self, ctx):
-           await self.start(ctx, wait=True)
-           return self.result
+        async def prompt(self, ctx):
+            await self.start(ctx, wait=True)
+            return self.result
 
 Then when it comes time to use it we can do it like so:
 
 .. code:: py
 
-   @bot.command()
-   async def delete_things(ctx):
-       confirm = await Confirm('Delete everything?').prompt(ctx)
-       if confirm:
-           await ctx.send('deleted...')
+    @bot.command()
+    async def delete_things(ctx):
+        confirm = await Confirm('Delete everything?').prompt(ctx)
+        if confirm:
+            await ctx.send('deleted...')
 
 Pagination
 ~~~~~~~~~~
@@ -98,30 +98,32 @@ The library comes with a few built-in page sources:
 
 -  :class:`ListPageSource`: The basic source that deals with a list of items.
 -  :class:`GroupByPageSource`: A page source that groups a list into multiple
-   sublists similar to :func:`itertools.groupby`.
+    sublists similar to :func:`itertools.groupby`.
 -  :class:`AsyncIteratorPageSource`: A page source that works with async
-   iterators for lazy fetching of data.
+    iterators for lazy fetching of data.
 
 None of these page sources deal with formatting of data, leaving that up
 to you.
 
 For the sake of example, here’s a basic list source that is paginated:
 
+.. _MySource:
+
 .. code:: py
 
-   from nextcord.ext import menus
+    from nextcord.ext import menus
 
-   class MySource(menus.ListPageSource):
-       def __init__(self, data):
-           super().__init__(data, per_page=4)
+    class MySource(menus.ListPageSource):
+        def __init__(self, data):
+            super().__init__(data, per_page=4)
 
-       async def format_page(self, menu, entries):
-           offset = menu.current_page * self.per_page
-           return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
+        async def format_page(self, menu, entries):
+            offset = menu.current_page * self.per_page
+            return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 
-   # somewhere else:
-   pages = menus.MenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
-   await pages.start(ctx)
+    # somewhere else:
+    pages = menus.MenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
+    await pages.start(ctx)
 
 The :meth:`PageSource.format_page` can return either a :class:`str` for content,
 :class:`nextcord.Embed` for an embed, or a :class:`dict` to pass into the kwargs
@@ -131,51 +133,51 @@ Some more examples using :class:`GroupByPageSource`:
 
 .. code:: py
 
-   from nextcord.ext import menus
+    from nextcord.ext import menus
 
-   class Test:
-       def __init__(self, key, value):
-           self.key = key
-           self.value = value
+    class Test:
+        def __init__(self, key, value):
+            self.key = key
+            self.value = value
 
-   data = [
-       Test(key=key, value=value)
-       for key in ['test', 'other', 'okay']
-       for value in range(20)
-   ]
+    data = [
+        Test(key=key, value=value)
+        for key in ['test', 'other', 'okay']
+        for value in range(20)
+    ]
 
-   class Source(menus.GroupByPageSource):
-       async def format_page(self, menu, entry):
-           joined = '\n'.join(f'{i}. <Test value={v.value}>' for i, v in enumerate(entry.items, start=1))
-           return f'**{entry.key}**\n{joined}\nPage {menu.current_page + 1}/{self.get_max_pages()}'
+    class Source(menus.GroupByPageSource):
+        async def format_page(self, menu, entry):
+            joined = '\n'.join(f'{i}. <Test value={v.value}>' for i, v in enumerate(entry.items, start=1))
+            return f'**{entry.key}**\n{joined}\nPage {menu.current_page + 1}/{self.get_max_pages()}'
 
-   pages = menus.MenuPages(source=Source(data, key=lambda t: t.key, per_page=12), clear_reactions_after=True)
-   await pages.start(ctx)
+    pages = menus.MenuPages(source=Source(data, key=lambda t: t.key, per_page=12), clear_reactions_after=True)
+    await pages.start(ctx)
 
 Another one showing :class:`AsyncIteratorPageSource`:
 
 .. code:: py
 
-   from nextcord.ext import menus
+    from nextcord.ext import menus
 
-   class Test:
-       def __init__(self, value):
-           self.value = value
+    class Test:
+        def __init__(self, value):
+            self.value = value
 
-       def __repr__(self):
-           return f'<Test value={self.value}>'
+        def __repr__(self):
+            return f'<Test value={self.value}>'
 
-   async def generate(number):
-       for i in range(number):
-           yield Test(i)
+    async def generate(number):
+        for i in range(number):
+            yield Test(i)
 
-   class Source(menus.AsyncIteratorPageSource):
-       def __init__(self):
-           super().__init__(generate(9), per_page=4)
+    class Source(menus.AsyncIteratorPageSource):
+        def __init__(self):
+            super().__init__(generate(9), per_page=4)
 
-       async def format_page(self, menu, entries):
-           start = menu.current_page * self.per_page
-           return f'\n'.join(f'{i}. {v!r}' for i, v in enumerate(entries, start=start))
+        async def format_page(self, menu, entries):
+            start = menu.current_page * self.per_page
+            return f'\n'.join(f'{i}. {v!r}' for i, v in enumerate(entries, start=start))
 
-   pages = menus.MenuPages(source=Source(), clear_reactions_after=True)
-   await pages.start(ctx)
+    pages = menus.MenuPages(source=Source(), clear_reactions_after=True)
+    await pages.start(ctx)

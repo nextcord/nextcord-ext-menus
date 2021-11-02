@@ -18,8 +18,10 @@ Contents
 .. toctree::
 
    ext/menus/api
-   ext/menus/button_menus
    ext/menus/reaction_menus
+   ext/menus/button_menus
+   ext/menus/menu_examples
+   ext/menus/pagination_examples
 
 License
 -------

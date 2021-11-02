@@ -1,9 +1,9 @@
-API Reference
-=============
-
+.. currentmodule:: nextcord.ext.menus
+    
 .. _ext_menus_api:
 
-.. currentmodule:: nextcord.ext.menus
+API Reference
+=============
 
 .. contents::
 
@@ -55,6 +55,8 @@ MenuPages
 
 .. autoclass:: MenuPages
     :members:
+    :inherited-members:
+    :exclude-members: should_add_reactions, should_add_buttons
 
 Button
 >>>>>>
@@ -146,17 +148,32 @@ AsyncIteratorPageSource
 Exceptions
 ----------
 
+MenuError
+~~~~~~~~~
+
 .. autoclass:: MenuError
     :members:
+
+CannotEmbedLinks
+~~~~~~~~~~~~~~~~
 
 .. autoclass:: CannotEmbedLinks
     :members:
 
+CannotSendMessages
+~~~~~~~~~~~~~~~~~~
+
 .. autoclass:: CannotSendMessages
     :members:
 
+CannotAddReactions
+~~~~~~~~~~~~~~~~~~
+
 .. autoclass:: CannotAddReactions
     :members:
+
+CannotReadMessageHistory
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: CannotReadMessageHistory
     :members:
