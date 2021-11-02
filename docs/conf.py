@@ -4,8 +4,8 @@ import os
 
 
 project = "nextcord-ext-menus"
-copyright = "2021, nextcord"
-author = "nextcord"
+copyright = "2021-present, Nextcord. 2015-2020, Danny (Rapptz)"
+author = "Nextcord"
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.append(os.path.abspath("extensions"))
@@ -72,6 +72,8 @@ master_doc = "index"
 pygments_style = "friendly"
 source_suffix = ".rst"
 
+html_title = "nextcord-ext-menus"
+
 html_theme_options = {
     "repository_url": "https://github.com/nextcord/nextcord-ext-menus",
     "path_to_docs": "docs",
@@ -83,11 +85,15 @@ html_theme_options = {
 # These folders are copied to the documentation's HTML output
 html_static_path = ["_static"]
 
-html_css_files = [
-    f'css/custom.css?v={os.path.getmtime(os.path.join("_static", "css", "custom.css"))}',
-]
 
-html_js_files = [
-    "js/darkreader.min.js",
-    "js/auto_darkmode.js",
-]
+def uncached(directory, files):
+    """Append last modified date to filenames in order to prevent caching old versions"""
+    return [
+        f'{directory}/{filename}?v={os.path.getmtime(os.path.join("_static", directory, filename))}'
+        for filename in files
+    ]
+
+
+html_css_files = uncached("css", ["custom.css"])
+
+html_js_files = uncached("js", ["darkreader.min.js", "toggleDarkMode.js"])

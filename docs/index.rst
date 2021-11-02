@@ -1,5 +1,5 @@
-nextcord-ext-menus
-==================
+Documentation for nextcord-ext-menus
+====================================
 
 |Discord server invite| |PyPI version info| |PyPI supported Python versions|
 
