@@ -69,6 +69,10 @@ class MenuPagesBase(Menu):
         return self._source.is_paginating()
 
     async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
+        """|coro|
+
+        Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
+        """
         value: PageFormatType = await nextcord.utils.maybe_coroutine(self._source.format_page, self, page)
         if isinstance(value, dict):
             return value
@@ -78,6 +82,10 @@ class MenuPagesBase(Menu):
             return {'embed': value, 'content': None}
 
     async def show_page(self, page_number: int):
+        """|coro|
+
+        Sets the current page to the specified page and shows it.
+        """
         page = await self._source.get_page(page_number)
         self.current_page = page_number
         kwargs = await self._get_kwargs_from_page(page)
@@ -93,8 +101,6 @@ class MenuPagesBase(Menu):
         """
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
-        if hasattr(self, '__discord_ui_view__'):
-            kwargs['view'] = self
         return await channel.send(**kwargs)
 
     async def start(self, ctx: commands.Context, *, channel: Optional[nextcord.abc.Messageable] = None, wait: Optional[bool] = False):
@@ -202,16 +208,8 @@ class MenuPaginationButton(nextcord.ui.Button['MenuPaginationButton']):
             await view.go_to_next_page()
         elif str(self._emoji) == view.LAST_PAGE:
             await view.go_to_last_page()
-
-        # disable buttons that are unavailable
-        view._disable_unavailable_buttons()
-
-        # disable all buttons if stop is pressed
-        if str(self._emoji) == view.STOP:
-            return view.stop()
-
-        # update the view
-        await interaction.response.edit_message(view=view)
+        elif str(self._emoji) == view.STOP:
+            await view.stop_pages()
 
 
 class ButtonMenuPages(MenuPagesBase, ButtonMenu):
@@ -243,7 +241,28 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
             if emoji in {self.FIRST_PAGE, self.LAST_PAGE} and self._skip_double_triangle_buttons():
                 continue
             self.add_item(MenuPaginationButton(emoji=emoji, style=style))
+        # disable buttons that are not available
         self._disable_unavailable_buttons()
+
+    async def show_page(self, page_number: int):
+        """|coro|
+
+        Sets the current page to the specified page and shows it.
+        """
+        # disable buttons that are not available
+        self.current_page = page_number
+        self._disable_unavailable_buttons()
+        # show the page
+        await super().show_page(page_number)
+
+    async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
+        """|coro|
+
+        Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
+        """
+        kwargs = await super()._get_kwargs_from_page(page)
+        # add view to kwargs if it's not already there
+        return {"view": self, **kwargs}
 
     def _disable_unavailable_buttons(self):
         """
