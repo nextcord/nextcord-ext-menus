@@ -1,0 +1,19 @@
+.py-attribute-table {
+    display: flex;
+    gap: 3em;
+    flex-wrap: wrap;
+}
+
+.py-attribute-table-column > span {
+    font-weight: bold;
+    font-size: 120%;
+}
+
+span.py-attribute-table-badge {
+    margin-right: 0.5em;
+    font-size: 88%;
+}
+
+.py-attribute-table-column > ul {
+    margin-top: 0.5em;
+}

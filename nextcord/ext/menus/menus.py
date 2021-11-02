@@ -1,17 +1,29 @@
 import asyncio
 import inspect
 from collections import OrderedDict
-from typing import (Any, Callable, Coroutine, Mapping, NoReturn, Optional,
-                    OrderedDict, Union)
+from typing import (
+    Any,
+    Callable,
+    Coroutine,
+    Mapping,
+    NoReturn,
+    Optional,
+    OrderedDict,
+    Union,
+)
 
 import nextcord
 from nextcord.ext import commands
 from nextcord.permissions import Permissions
 
 from .constants import DEFAULT_TIMEOUT, EmojiType, log
-from .exceptions import (CannotAddReactions, CannotEmbedLinks,
-                         CannotReadMessageHistory, CannotSendMessages,
-                         MenuError)
+from .exceptions import (
+    CannotAddReactions,
+    CannotEmbedLinks,
+    CannotReadMessageHistory,
+    CannotSendMessages,
+    MenuError,
+)
 from .utils import Position, _cast_emoji
 
 
@@ -45,10 +57,18 @@ class Button:
         Whether the button should lock all other buttons from being processed
         until this button is done. Defaults to ``True``.
     """
-    __slots__ = ('emoji', '_action', '_skip_if', 'position', 'lock')
 
-    def __init__(self, emoji: nextcord.PartialEmoji, action: Coroutine, *, skip_if: Optional[Callable[["Menu"], bool]] = None,
-                 position: Optional[Position] = None, lock: Optional[bool] = True):
+    __slots__ = ("emoji", "_action", "_skip_if", "position", "lock")
+
+    def __init__(
+        self,
+        emoji: nextcord.PartialEmoji,
+        action: Coroutine,
+        *,
+        skip_if: Optional[Callable[["Menu"], bool]] = None,
+        position: Optional[Position] = None,
+        lock: Optional[bool] = True
+    ):
 
         self.emoji = _cast_emoji(emoji)
         self.action = action
@@ -74,7 +94,8 @@ class Button:
             # Unfurl the method to not be bound
             if not isinstance(menu_self, Menu):
                 raise TypeError(
-                    'skip_if bound method must be from Menu not %r' % menu_self)
+                    "skip_if bound method must be from Menu not %r" % menu_self
+                )
 
             self._skip_if = value.__func__
 
@@ -92,12 +113,13 @@ class Button:
             # Unfurl the method to not be bound
             if not isinstance(menu_self, Menu):
                 raise TypeError(
-                    'action bound method must be from Menu not %r' % menu_self)
+                    "action bound method must be from Menu not %r" % menu_self
+                )
 
             value = value.__func__
 
         if not inspect.iscoroutinefunction(value):
-            raise TypeError('action must be a coroutine not %r' % value)
+            raise TypeError("action must be a coroutine not %r" % value)
 
         self._action = value
 
@@ -114,7 +136,7 @@ class Button:
 
 
 def button(emoji: EmojiType, **kwargs):
-    """Denotes a method to be button for the :class:`Menu`.
+    """Denotes a method to be a reaction button for the :class:`Menu`.
 
     The methods being wrapped must have both a ``self`` and a ``payload``
     parameter of type :class:`nextcord.RawReactionActionEvent`.
@@ -143,10 +165,12 @@ def button(emoji: EmojiType, **kwargs):
     emoji: Union[:class:`str`, :class:`nextcord.PartialEmoji`]
         The emoji to use for the button.
     """
+
     def decorator(func: Callable) -> Callable:
         func.__menu_button__ = _cast_emoji(emoji)
         func.__menu_button_kwargs__ = kwargs
         return func
+
     return decorator
 
 
@@ -162,7 +186,7 @@ class _MenuMeta(type):
         buttons = []
         new_cls = super().__new__(cls, name, bases, attrs)
 
-        inherit_buttons = kwargs.pop('inherit_buttons', True)
+        inherit_buttons = kwargs.pop("inherit_buttons", True)
         if inherit_buttons:
             # walk MRO to get all buttons even in subclasses
             for base in reversed(new_cls.__mro__):
@@ -227,8 +251,15 @@ class Menu(metaclass=_MenuMeta):
         message you want to attach a menu to.
     """
 
-    def __init__(self, *, timeout: float = DEFAULT_TIMEOUT, delete_message_after: bool = False,
-                 clear_reactions_after: bool = False, check_embeds: bool = False, message: Optional[nextcord.Message] = None):
+    def __init__(
+        self,
+        *,
+        timeout: float = DEFAULT_TIMEOUT,
+        delete_message_after: bool = False,
+        clear_reactions_after: bool = False,
+        check_embeds: bool = False,
+        message: Optional[nextcord.Message] = None
+    ):
 
         self.timeout = timeout
         self.delete_message_after = delete_message_after
@@ -247,7 +278,7 @@ class Menu(metaclass=_MenuMeta):
 
     @nextcord.utils.cached_property
     def buttons(self) -> Mapping[str, Button]:
-        """Retrieves the buttons that are to be used for this menu session.
+        """Retrieves the reaction buttons that are to be used for this menu session.
 
         Skipped buttons are not in the resulting dictionary.
 
@@ -257,16 +288,12 @@ class Menu(metaclass=_MenuMeta):
             A mapping of button emoji to the actual button class.
         """
         buttons = sorted(self._buttons.values(), key=lambda b: b.position)
-        return {
-            button.emoji: button
-            for button in buttons
-            if button.is_valid(self)
-        }
+        return {button.emoji: button for button in buttons if button.is_valid(self)}
 
     def add_button(self, button: Button, *, react: bool = False):
         """|maybecoro|
 
-        Adds a button to the list of buttons.
+        Adds a reaction button to the list of buttons.
 
         If the menu has already been started then the button will
         not be added unless the ``react`` keyword-only argument is
@@ -302,6 +329,7 @@ class Menu(metaclass=_MenuMeta):
 
         if react:
             if self.__tasks:
+
                 async def wrapped():
                     # Add the reaction
                     try:
@@ -315,13 +343,16 @@ class Menu(metaclass=_MenuMeta):
                 return wrapped()
 
             async def dummy():
-                raise MenuError('Menu has not been started yet')
+                raise MenuError("Menu has not been started yet")
+
             return dummy()
 
-    def remove_button(self, emoji: Union[Button, str], *, react: bool = False) -> Union[Coroutine[Any, Any, None], NoReturn]:
+    def remove_button(
+        self, emoji: Union[Button, str], *, react: bool = False
+    ) -> Union[Coroutine[Any, Any, None], NoReturn]:
         """|maybecoro|
 
-        Removes a button from the list of buttons.
+        Removes a reaction button from the list of buttons.
 
         This operates similar to :meth:`add_button`.
 
@@ -350,22 +381,27 @@ class Menu(metaclass=_MenuMeta):
 
         if react:
             if self.__tasks:
+
                 async def wrapped():
                     # Remove the reaction from being processable
                     # Removing it from the cache first makes it so the check
                     # doesn't get triggered.
                     self.buttons.pop(emoji, None)
                     await self.message.remove_reaction(emoji, self.__me)
+
                 return wrapped()
 
             async def dummy():
-                raise MenuError('Menu has not been started yet')
+                raise MenuError("Menu has not been started yet")
+
             return dummy()
 
-    def clear_buttons(self, *, react: bool = False) -> Union[Coroutine[Any, Any, None], NoReturn]:
+    def clear_buttons(
+        self, *, react: bool = False
+    ) -> Union[Coroutine[Any, Any, None], NoReturn]:
         """|maybecoro|
 
-        Removes all buttons from the list of buttons.
+        Removes all reaction buttons from the list of buttons.
 
         If the menu has already been started then the buttons will
         not be removed unless the ``react`` keyword-only argument is
@@ -393,7 +429,7 @@ class Menu(metaclass=_MenuMeta):
                 return self.clear
 
             async def dummy():
-                raise MenuError('Menu has not been started yet')
+                raise MenuError("Menu has not been started yet")
 
             return dummy()
 
@@ -403,13 +439,18 @@ class Menu(metaclass=_MenuMeta):
 
     def should_add_buttons(self) -> bool:
         """:class:`bool`: Whether to add button components to this menu session."""
-        return hasattr(self, 'children') and len(self.children) > 0
+        return hasattr(self, "children") and len(self.children) > 0
 
     def should_add_reactions_or_buttons(self) -> bool:
         """:class:`bool`: Whether to add reactions or buttons to this menu session."""
         return self.should_add_reactions() or self.should_add_buttons()
 
-    def _verify_permissions(self, ctx: commands.Context, channel: nextcord.abc.Messageable, permissions: Permissions):
+    def _verify_permissions(
+        self,
+        ctx: commands.Context,
+        channel: nextcord.abc.Messageable,
+        permissions: Permissions,
+    ):
         if not permissions.send_messages:
             raise CannotSendMessages()
 
@@ -441,7 +482,11 @@ class Menu(metaclass=_MenuMeta):
         """
         if payload.message_id != self.message.id:
             return False
-        if payload.user_id not in {self.bot.owner_id, self._author_id, *self.bot.owner_ids}:
+        if payload.user_id not in {
+            self.bot.owner_id,
+            self._author_id,
+            *self.bot.owner_ids,
+        }:
             return False
 
         return payload.emoji in self.buttons
@@ -454,12 +499,18 @@ class Menu(metaclass=_MenuMeta):
             tasks = []
             while self._running:
                 tasks = [
-                    asyncio.ensure_future(self.bot.wait_for(
-                        'raw_reaction_add', check=self.reaction_check)),
-                    asyncio.ensure_future(self.bot.wait_for(
-                        'raw_reaction_remove', check=self.reaction_check))
+                    asyncio.ensure_future(
+                        self.bot.wait_for("raw_reaction_add", check=self.reaction_check)
+                    ),
+                    asyncio.ensure_future(
+                        self.bot.wait_for(
+                            "raw_reaction_remove", check=self.reaction_check
+                        )
+                    ),
                 ]
-                done, pending = await asyncio.wait(tasks, timeout=self.timeout, return_when=asyncio.FIRST_COMPLETED)
+                done, pending = await asyncio.wait(
+                    tasks, timeout=self.timeout, return_when=asyncio.FIRST_COMPLETED
+                )
                 for task in pending:
                     task.cancel()
 
@@ -549,7 +600,13 @@ class Menu(metaclass=_MenuMeta):
         # which would require awaiting, such as stopping an erroring menu.
         log.exception("Unhandled exception during menu update.", exc_info=exc)
 
-    async def start(self, ctx: commands.Context, *, channel: Optional[nextcord.abc.Messageable] = None, wait: bool = False):
+    async def start(
+        self,
+        ctx: commands.Context,
+        *,
+        channel: Optional[nextcord.abc.Messageable] = None,
+        wait: bool = False
+    ):
         """|coro|
 
         Starts the interactive menu session.
@@ -573,7 +630,7 @@ class Menu(metaclass=_MenuMeta):
             Adding a reaction failed.
         """
 
-        # Clear the buttons cache and re-compute if possible.
+        # Clear the reaction buttons cache and re-compute if possible.
         try:
             del self.buttons
         except AttributeError:
@@ -583,7 +640,7 @@ class Menu(metaclass=_MenuMeta):
         self.ctx = ctx
         self._author_id = ctx.author.id
         channel = channel or ctx.channel
-        me = channel.guild.me if hasattr(channel, 'guild') else ctx.bot.user
+        me = channel.guild.me if hasattr(channel, "guild") else ctx.bot.user
         permissions = channel.permissions_for(me)
         self.__me = nextcord.Object(id=me.id)
         self._verify_permissions(ctx, channel, permissions)
@@ -604,6 +661,7 @@ class Menu(metaclass=_MenuMeta):
             async def add_reactions_task():
                 for emoji in self.buttons:
                     await msg.add_reaction(emoji)
+
             self.__tasks.append(bot.loop.create_task(add_reactions_task()))
 
             if wait:
@@ -623,7 +681,9 @@ class Menu(metaclass=_MenuMeta):
         """
         pass
 
-    async def send_initial_message(self, ctx: commands.Context, channel: nextcord.abc.Messageable) -> nextcord.Message:
+    async def send_initial_message(
+        self, ctx: commands.Context, channel: nextcord.abc.Messageable
+    ) -> nextcord.Message:
         """|coro|
 
         Sends the initial message for the menu session.
@@ -692,6 +752,8 @@ class Menu(metaclass=_MenuMeta):
 class ButtonMenu(Menu, nextcord.ui.View):
     r"""An interface that allows handling menus by using button interaction components.
 
+    This is a subclass of :class:`Menu` and as a result, any attributes and methods of :class:`Menu` are available here as well.
+
     Buttons should be marked with the :func:`nextcord.ui.button` decorator. Please note that
     this expects the methods to have two parameters, the ``button`` and the ``interaction``.
     The ``button`` is of type :class:`nextcord.ui.Button`.
@@ -700,6 +762,23 @@ class ButtonMenu(Menu, nextcord.ui.View):
     Attributes
     ------------
 
+    timeout: :class:`float`
+        The timeout to wait between button inputs.
+    delete_message_after: :class:`bool`
+        Whether to delete the message after the menu interaction is done.
+    check_embeds: :class:`bool`
+        Whether to verify embed permissions as well.
+    ctx: Optional[:class:`commands.Context`]
+        The context that started this pagination session or ``None`` if it hasn't
+        been started yet.
+    bot: Optional[:class:`commands.Bot`]
+        The bot that is running this pagination session or ``None`` if it hasn't
+        been started yet.
+    message: Optional[:class:`nextcord.Message`]
+        The message that has been sent for handling the menu. This is the returned
+        message of :meth:`send_initial_message`. You can set it in order to avoid
+        calling :meth:`send_initial_message`\, if for example you have a pre-existing
+        message you want to attach a menu to.
     clear_buttons_after: :class:`bool`
         Whether to clear buttons after the menu interaction is done.
         Note that :attr:`delete_message_after` takes priority over this attribute.
@@ -708,8 +787,14 @@ class ButtonMenu(Menu, nextcord.ui.View):
         Note that :attr:`delete_message_after` and :attr:`clear_buttons_after` take priority over this attribute.
     """
 
-    def __init__(self, timeout: float = DEFAULT_TIMEOUT, clear_buttons_after: bool = False,
-                 disable_buttons_after: bool = False, *args, **kwargs):
+    def __init__(
+        self,
+        timeout: float = DEFAULT_TIMEOUT,
+        clear_buttons_after: bool = False,
+        disable_buttons_after: bool = False,
+        *args,
+        **kwargs
+    ):
         Menu.__init__(self, timeout=timeout, *args, **kwargs)
         nextcord.ui.View.__init__(self, timeout=timeout)
         self.clear_buttons_after = clear_buttons_after

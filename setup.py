@@ -2,27 +2,36 @@ import os
 from setuptools import setup
 import re
 
-version = ''
-with open('nextcord/ext/menus/__init__.py') as f:
-    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+version = ""
+with open("nextcord/ext/menus/__init__.py") as f:
+    version = re.search(
+        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
+    ).group(1)
 
 if not version:
-    raise RuntimeError('version is not set')
+    raise RuntimeError("version is not set")
 
-if version.endswith(('a', 'b', 'rc')):
+if version.endswith(("a", "b", "rc")):
     # append version identifier based on commit count
     try:
         import subprocess
-        p = subprocess.Popen(['git', 'rev-list', '--count', 'HEAD'],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        p = subprocess.Popen(
+            ["git", "rev-list", "--count", "HEAD"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         out, err = p.communicate()
         if out:
-            version += out.decode('utf-8').strip()
-        p = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            version += out.decode("utf-8").strip()
+        p = subprocess.Popen(
+            ["git", "rev-parse", "--short", "HEAD"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         out, err = p.communicate()
         if out:
-            version += '+g' + out.decode('utf-8').strip()
+            version += "+g" + out.decode("utf-8").strip()
     except Exception:
         pass
 
@@ -45,6 +54,14 @@ def requirements():
         return f.read().splitlines()
 
 
+extras_require = {
+    "docs": [
+        "sphinx",
+        "sphinxcontrib_trio",
+        "sphinx-rtd-theme",
+    ],
+}
+
 setup(
     name="nextcord-ext-menus",
     version=version,
@@ -56,8 +73,9 @@ setup(
     project_urls={
         "Bug Tracker": "https://github.com/nextcord/nextcord-ext-menus/issues",
     },
-    packages=['nextcord.ext.menus'],
-    license='MIT',
+    packages=["nextcord.ext.menus"],
+    license="MIT",
     python_requires=">=3.8.0",
-    install_requires=[requirements()]
+    install_requires=[requirements()],
+    extras_require=extras_require,
 )
