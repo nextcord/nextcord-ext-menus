@@ -117,16 +117,17 @@ Custom Emojis
         LAST_PAGE = "<:pagelast:899973860810694686>"
         STOP = "<:stop:899973861444042782>"
 
-    # starting the menu
-    pages = CustomButtonMenuPages(source=MySource(range(1, 100)))
-    await pages.start(ctx)
+    @bot.command()
+    async def custom_buttons(ctx):
+        pages = CustomButtonMenuPages(source=MySource(range(1, 100)))
+        await pages.start(ctx)
 
 Remove Stop Button
 ------------------
 
 .. code:: py
 
-    class CustomButtonMenuPages(menus.ButtonMenuPages, inherit_buttons=False):
+    class NoStopButtonMenuPages(menus.ButtonMenuPages, inherit_buttons=False):
         """
         This class overrides the default ButtonMenuPages without inheriting the buttons
         by setting inherit_buttons to False.
@@ -145,6 +146,92 @@ Remove Stop Button
             
             # Disable buttons that are unavailable to be pressed at the start
             self._disable_unavailable_buttons()
+
+    @bot.command()
+    async def removed_buttons(ctx):
+        pages = NoStopButtonMenuPages(source=MySource(range(1, 100)))
+        await pages.start(ctx)
+
+GroupByPageSource
+-----------------
+
+.. code:: py
+
+    class Test:
+        def __init__(self, key, value):
+            self.key = key
+            self.value = value
+
+    data = [
+        Test(key=key, value=value)
+        for key in ['test', 'other', 'okay']
+        for value in range(20)
+    ]
+
+    class Source(menus.GroupByPageSource):
+        async def format_page(self, menu, entry):
+            joined = '\n'.join(f'{i}. <Test value={v.value}>' for i, v in enumerate(entry.items, start=1))
+            return f'**{entry.key}**\n{joined}\nPage {menu.current_page + 1}/{self.get_max_pages()}'
+
+    @bot.command()
+    async def group_by_page_source_example(ctx: commands.Context):
+        pages = menus.ButtonMenuPages(
+            source=Source(data, key=lambda t: t.key, per_page=12),
+            clear_reactions_after=True,
+        )
+        await pages.start(ctx)
+
+AsyncIteratorPageSource
+-----------------------
+
+.. code:: py
+
+    class Test:
+        def __init__(self, value):
+            self.value = value
+
+        def __repr__(self):
+            return f'<Test value={self.value}>'
+
+    async def generate(number):
+        for i in range(number):
+            yield Test(i)
+
+    class Source(menus.AsyncIteratorPageSource):
+        def __init__(self):
+            super().__init__(generate(9), per_page=4)
+
+        async def format_page(self, menu, entries):
+            start = menu.current_page * self.per_page
+            return f'\n'.join(f'{i}. {v!r}' for i, v in enumerate(entries, start=start))
+
+    @bot.command()
+    async def async_iterator_page_source_example(ctx: commands.Context):
+        pages = menus.ButtonMenuPages(source=Source())
+        await pages.start(ctx)     
+
+Pagination + Select Menus
+-------------------------
+
+See `Nextcord's dropdown example <https://github.com/nextcord/nextcord/blob/master/examples/views/dropdown.py>`_
+for an example on how to create a :class:`Select Menu <nextcord.ui.Select>`.
+
+.. code:: py
+
+    class SelectButtonMenuPages(menus.ButtonMenuPages, inherit_buttons=False):
+        def __init__(self, source: menus.PageSource, timeout: int = 60):
+            super().__init__(source, timeout=timeout, disable_buttons_after=True)
+            self.add_item(MenuPaginationButton(emoji=self.FIRST_PAGE))
+            self.add_item(MenuPaginationButton(emoji=self.PREVIOUS_PAGE))
+            self.add_item(MenuPaginationButton(emoji=self.NEXT_PAGE))
+            self.add_item(MenuPaginationButton(emoji=self.LAST_PAGE))
+            self.add_item(MyDropdown())
+            self._disable_unavailable_buttons()
+
+    @bot.command()
+    async def button_select_pages(ctx):
+        pages = SelectButtonMenuPages(source=MySource(range(1, 100)))
+        await pages.start(ctx)
 
 Paginated Help Command Cog
 --------------------------
@@ -295,90 +382,3 @@ Paginated Help Command Cog
 
     def setup(bot: commands.Bot):
         bot.add_cog(HelpCog(bot))
-
-Group-by-Page Source
---------------------
-
-.. code:: py
-
-    class GBPS_Test:
-        def __init__(self, key, value):
-            self.key = key
-            self.value = value
-
-
-    data = [
-        GBPS_Test(key=key, value=value)
-        for key in ["test", "other", "okay"]
-        for value in range(20)
-    ]
-
-
-    class GBPS_Source(menus.GroupByPageSource):
-        async def format_page(self, menu, entry):
-            joined = "\n".join(
-                f"{i}. <Test value={v.value}>" for i, v in enumerate(entry.items, start=1)
-            )
-            return f"**{entry.key}**\n{joined}\nPage {menu.current_page + 1}/{self.get_max_pages()}"
-
-    @client.command()
-    async def group_by_page_source_example(ctx: commands.Context):
-        pages = menus.ButtonMenuPages(
-            source=GBPS_Source(data, key=lambda t: t.key, per_page=12),
-            clear_reactions_after=True,
-        )
-        await pages.start(ctx)
-
-AsyncIterator Page Source
--------------------------
-
-.. code:: py
-
-    class AIPS_Test:
-        def __init__(self, value):
-            self.value = value
-
-        def __repr__(self):
-            return f"<Test value={self.value}>"
-
-
-    async def generate(number):
-        for i in range(number):
-            yield AIPS_Test(i)
-
-
-    class AIPS_Source(menus.AsyncIteratorPageSource):
-        def __init__(self):
-            super().__init__(generate(9), per_page=4)
-
-        async def format_page(self, menu, entries):
-            start = menu.current_page * self.per_page
-            return f"\n".join(f"{i}. {v!r}" for i, v in enumerate(entries, start=start))
-
-    @client.command()
-    async def async_iterator_page_source_example(ctx: commands.Context):
-        pages = menus.ButtonMenuPages(source=AIPS_Source())
-        await pages.start(ctx)
-
-Pagination + Select Menus
--------------------------
-
-See `Nextcord's dropdown example <https://github.com/nextcord/nextcord/blob/master/examples/views/dropdown.py>`_
-for an example on how to create a :class:`Select Menu <nextcord.ui.Select>`.
-
-.. code:: py
-
-    class SelectButtonMenuPages(menus.ButtonMenuPages, inherit_buttons=False):
-        def __init__(self, source: menus.PageSource, timeout: int = 5):
-            super().__init__(source, timeout=timeout, disable_buttons_after=True)
-            self.add_item(MenuPaginationButton(emoji=self.FIRST_PAGE))
-            self.add_item(MenuPaginationButton(emoji=self.PREVIOUS_PAGE))
-            self.add_item(MenuPaginationButton(emoji=self.NEXT_PAGE))
-            self.add_item(MenuPaginationButton(emoji=self.LAST_PAGE))
-            self.add_item(MyDropdown())
-            self._disable_unavailable_buttons()
-
-    @client.command()
-    async def button_select_pages(ctx):
-        pages = SelectButtonMenuPages(source=MySource(range(1, 100)))
-        await pages.start(ctx)

@@ -134,7 +134,7 @@ Button Confirm
             await menus.Menu.start(self, ctx, wait=True)
             return self.result
 
-    @client.command()
-    async def button_confitm(ctx: commands.Context):
+    @bot.command()
+    async def button_confirm(ctx: commands.Context):
         confirm = await ButtonConfirm("Confirm?").prompt(ctx)
         await ctx.send(f"You said: {confirm}")
