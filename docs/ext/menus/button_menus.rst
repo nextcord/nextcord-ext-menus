@@ -5,6 +5,11 @@
 Using Button Menus
 ==================
 
+.. contents::
+
+Menus
+~~~~~
+
 Here is a button implementation of a basic menu that has a stop button
 and two reply reactions.
 

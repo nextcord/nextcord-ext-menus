@@ -16,6 +16,7 @@ Contents
 --------
 
 .. toctree::
+   :maxdepth: 2
 
    ext/menus/api
    ext/menus/reaction_menus

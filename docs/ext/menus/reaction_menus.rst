@@ -5,6 +5,11 @@
 Using Reaction Menus
 ====================
 
+.. contents::
+
+Menus
+~~~~~
+
 To whet your appetite, the following examples show the fundamentals on
 how to create reaction menus.
 

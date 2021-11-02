@@ -26,3 +26,8 @@ div#site-navigation div.navbar_extra_footer {
     opacity: 0;
     transition: 0.1s ease-in;
 }
+
+.topbar .topbar-main a.dark-mode-button {
+    height: auto;
+    float: right;
+}

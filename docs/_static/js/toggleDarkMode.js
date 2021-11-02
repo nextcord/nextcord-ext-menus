@@ -33,11 +33,13 @@ function toggleDarkMode() {
 
 window.addEventListener("load", function () {
     const topbar = document.querySelector(".topbar-main");
-    topbar.innerHTML += `<button type="button" class="btn btn-secondary topbarbtn" style="float: right;"
-                        data-toggle="tooltip" data-placement="bottom" onclick="toggleDarkMode()"
-                        aria-label="Toggle dark mode" title="" data-original-title="Toggle dark mode">
-                            <i class="fas fa-moon"></i>
-                    </button>`;
+    topbar.innerHTML += `<a class="dark-mode-button" title="Toggle dark mode">
+            <button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="bottom" onclick="toggleDarkMode()"
+                aria-label="Toggle dark mode" title="" data-original-title="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+            </button>
+        </a>`;
     topbar.style.opacity = "1";
     if (getCookie("darkmode") == "true") {
         DarkReader.enable();
