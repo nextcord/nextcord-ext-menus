@@ -1,6 +1,8 @@
 API Reference
 =============
 
+.. _ext_menus_api:
+
 .. currentmodule:: nextcord.ext.menus
 
 .. contents::
