@@ -1,6 +1,6 @@
 .py-attribute-table {
     display: flex;
-    gap: 3em;
+    column-gap: 3em;
     flex-wrap: wrap;
 }
 

@@ -58,7 +58,7 @@ extras_require = {
     "docs": [
         "sphinx",
         "sphinxcontrib_trio",
-        "sphinx-rtd-theme",
+        "sphinx-book-theme",
     ],
 }
 

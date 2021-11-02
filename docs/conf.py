@@ -45,7 +45,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
-    "sphinx_rtd_theme",
+    "sphinx_book_theme",
     "sphinxcontrib_trio",
     "attributetable",
 ]
@@ -67,13 +67,27 @@ rst_prolog = """
 """
 
 highlight_language = "python3"
-html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_book_theme"
 master_doc = "index"
 pygments_style = "friendly"
 source_suffix = ".rst"
 
+html_theme_options = {
+    "repository_url": "https://github.com/nextcord/nextcord-ext-menus",
+    "path_to_docs": "docs",
+    "use_repository_button": True,
+    "use_issues_button": True,
+    "use_edit_page_button": True,
+}
+
 # These folders are copied to the documentation's HTML output
 html_static_path = ["_static"]
+
 html_css_files = [
-    "css/custom.css",
+    f'css/custom.css?v={os.path.getmtime(os.path.join("_static", "css", "custom.css"))}',
+]
+
+html_js_files = [
+    "js/darkreader.min.js",
+    "js/auto_darkmode.js",
 ]
