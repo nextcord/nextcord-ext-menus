@@ -6,7 +6,7 @@
 
 A Nextcord extension that makes working with reaction menus and button component menus a bit easier.
 
-![pages](https://user-images.githubusercontent.com/20955511/132110266-579e7090-5929-4f00-a4df-5bcf498890ee.gif)
+![embed buttons example](https://user-images.githubusercontent.com/20955511/139876561-d30fe623-3352-45b0-8bea-e1b7eefa1cc7.gif)
 
 ## Installing
 
