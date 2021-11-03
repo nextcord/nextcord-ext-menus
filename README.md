@@ -29,7 +29,7 @@ py -3 -m pip install -U nextcord-ext-menus
 ## Links
 
 - [Documentation](https://nextcord-ext-menus.readthedocs.io/en/latest/)
-- [Usage Examples](https://github.com/nextcord/nextcord-ext-ipc/tree/master/examples)
+- [Usage Examples](https://github.com/nextcord/nextcord-ext-menus/tree/master/examples)
 - [Official Discord server](https://discord.gg/ZebatWssCB)
 
 ## License

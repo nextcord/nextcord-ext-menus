@@ -26,9 +26,9 @@ Also note that ``view=self`` is passed with the initial message and
 
 :meth:`ButtonMenu.enable` can be used to enable all buttons in the menu.
 
-Additionally, :attr:`ButtonMenu.disable_buttons_after` can be used as a kwarg to
+Additionally, :attr:`disable_buttons_after <ButtonMenu.disable_buttons_after>` can be used as a kwarg to
 :class:`ButtonMenu` to disable all buttons when the menu stops and
-:attr:`ButtonMenu.clear_buttons_after` can be used to remove them.
+:attr:`clear_buttons_after <ButtonMenu.clear_buttons_after>` can be used to remove them.
 
 .. code:: py
 
