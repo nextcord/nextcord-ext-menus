@@ -4,7 +4,7 @@ import os
 
 
 project = "nextcord-ext-menus"
-copyright = "2021-present, Nextcord. 2015-2020, Danny (Rapptz)"
+copyright = "2021-present, Nextcord. 2020-2021, Danny (Rapptz)"
 author = "Nextcord"
 
 sys.path.insert(0, os.path.abspath(".."))
