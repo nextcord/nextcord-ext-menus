@@ -72,7 +72,7 @@ class MenuPagesBase(Menu):
 
     async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
         """|coro|
-        
+
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
         """
         value: PageFormatType = await nextcord.utils.maybe_coroutine(
@@ -87,7 +87,7 @@ class MenuPagesBase(Menu):
 
     async def show_page(self, page_number: int):
         """|coro|
-        
+
         Sets the current page to the specified page and shows it.
         """
         page = await self._source.get_page(page_number)
@@ -177,25 +177,31 @@ class MenuPages(MenuPagesBase):
         if not self.__inherit_buttons__:
             return
         # add pagination reaction buttons
-        buttons = (
+        self.add_button(
             Button(
                 self.FIRST_PAGE,
                 self.go_to_first_page,
                 position=First(0),
                 skip_if=self._skip_double_triangle_buttons,
             ),
-            Button(self.PREVIOUS_PAGE, self.go_to_previous_page, position=First(1)),
+        )
+        self.add_button(
+            Button(self.PREVIOUS_PAGE, self.go_to_previous_page, position=First(1))
+        )
+        self.add_button(
             Button(self.NEXT_PAGE, self.go_to_next_page, position=Last(0)),
+        )
+        self.add_button(
             Button(
                 self.LAST_PAGE,
                 self.go_to_last_page,
                 position=Last(1),
                 skip_if=self._skip_double_triangle_buttons,
             ),
+        )
+        self.add_button(
             Button(self.STOP, self.stop_pages, position=Last(2)),
         )
-        for button in buttons:
-            self.add_button(button)
 
 
 class MenuPaginationButton(nextcord.ui.Button["MenuPaginationButton"]):
@@ -266,17 +272,16 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         if not self.__inherit_buttons__:
             return
         # add buttons to the view
-        for emoji in (
+        pagination_emojis = (
             self.FIRST_PAGE,
             self.PREVIOUS_PAGE,
             self.NEXT_PAGE,
             self.LAST_PAGE,
             self.STOP,
-        ):
-            if (
-                emoji in {self.FIRST_PAGE, self.LAST_PAGE}
-                and self._skip_double_triangle_buttons()
-            ):
+        )
+        double_triangle_emojis = {self.FIRST_PAGE, self.LAST_PAGE}
+        for emoji in pagination_emojis:
+            if emoji in double_triangle_emojis and self._skip_double_triangle_buttons():
                 continue
             self.add_item(MenuPaginationButton(emoji=emoji, style=style))
         # disable buttons that are not available
