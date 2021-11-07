@@ -1,6 +1,6 @@
 # nextcord-ext-menus
 
-[![Discord server invite](https://discord.com/api/guilds/881118111967883295/embed.png)](https://discord.gg/ZebatWssCB)
+[![Discord server invite](https://img.shields.io/discord/881118111967883295?color=blue&label=discord)](https://discord.gg/ZebatWssCB)
 [![PyPI version info](https://img.shields.io/pypi/v/nextcord-ext-menus.svg)](https://pypi.python.org/pypi/nextcord-ext-menus)
 [![PyPI supported Python versions](https://img.shields.io/pypi/pyversions/nextcord.svg)](https://pypi.python.org/pypi/nextcord)
 
