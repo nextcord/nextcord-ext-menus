@@ -17,7 +17,7 @@ class MyEmbedFieldPageSource(menus.ListPageSource):
         return embed
 
 
-@bot.command(aliases=["bef"])
+@bot.command()
 async def button_embed_field(ctx):
     pages = menus.ButtonMenuPages(
         source=MyEmbedFieldPageSource(list(zip('abcdefghij', range(1, 11)))),
@@ -26,7 +26,7 @@ async def button_embed_field(ctx):
     await pages.start(ctx)
 
 
-@bot.command(aliases=["ref"])
+@bot.command()
 async def reaction_embed_field(ctx):
     pages = menus.MenuPages(
         source=MyEmbedFieldPageSource(list(zip('abcdefghij', range(1, 11)))),
@@ -45,7 +45,7 @@ class MyEmbedDescriptionPageSource(menus.ListPageSource):
         return embed
 
 
-@bot.command(aliases=["bed"])
+@bot.command()
 async def button_embed_description(ctx):
     data = [f'Description for entry #{num}' for num in range(1, 51)]
     pages = menus.ButtonMenuPages(
