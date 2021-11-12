@@ -1,0 +1,33 @@
+.py-attribute-table {
+    display: flex;
+    column-gap: 3em;
+    flex-wrap: wrap;
+}
+
+.py-attribute-table-column > span {
+    font-weight: bold;
+    font-size: 120%;
+}
+
+span.py-attribute-table-badge {
+    margin-right: 0.5em;
+    font-size: 88%;
+}
+
+.py-attribute-table-column > ul {
+    margin-top: 0.5em;
+}
+
+div#site-navigation div.navbar_extra_footer {
+    font-size: 0.8em;
+}
+
+.topbar-main {
+    opacity: 0;
+    transition: 0.1s ease-in;
+}
+
+.topbar .topbar-main a.dark-mode-button {
+    height: auto;
+    float: right;
+}

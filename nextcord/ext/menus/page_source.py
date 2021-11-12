@@ -1,7 +1,16 @@
 import inspect
 import itertools
-from typing import (Any, AsyncIterator, Callable, List, NamedTuple, Optional,
-                    Sequence, TypeVar, Union)
+from typing import (
+    Any,
+    AsyncIterator,
+    Callable,
+    List,
+    NamedTuple,
+    Optional,
+    Sequence,
+    TypeVar,
+    Union,
+)
 
 from .constants import PageFormatType, SendKwargsType
 from .menus import Menu
@@ -18,6 +27,7 @@ class PageSource:
     - :meth:`is_paginating`
     - :meth:`format_page`
     """
+
     async def _prepare_once(self):
         try:
             # Don't feel like formatting hasattr with
@@ -178,7 +188,7 @@ class ListPageSource(PageSource):
             return self.entries[page_number]
         else:
             base = page_number * self.per_page
-            return self.entries[base:base + self.per_page]
+            return self.entries[base : base + self.per_page]
 
 
 KeyType = TypeVar("KeyType")
@@ -210,9 +220,23 @@ class GroupByPageSource(ListPageSource):
         The elements are sorted according to the ``key`` function passed.
     per_page: :class:`int`
         How many elements to have per page of the group.
+
+    Attributes
+    ------------
+    entries: Sequence[Any]
+        The sequence of items to paginate.
+    per_page: :class:`int`
+        How many elements are in a page.
     """
 
-    def __init__(self, entries: Sequence[DataType], *, key: KeyFuncType, per_page: int, sort: int = True):
+    def __init__(
+        self,
+        entries: Sequence[DataType],
+        *,
+        key: KeyFuncType,
+        per_page: int,
+        sort: int = True
+    ):
         self.__entries = entries if not sort else sorted(entries, key=key)
         nested: List[_GroupByEntry] = []
         self.nested_per_page = per_page
@@ -224,7 +248,7 @@ class GroupByPageSource(ListPageSource):
 
             # Chunk the nested pages
             nested.extend(
-                _GroupByEntry(key=key_i, items=group_i[i:i+per_page])
+                _GroupByEntry(key=key_i, items=group_i[i : i + per_page])
                 for i in range(0, size, per_page)
             )
 
@@ -262,13 +286,11 @@ def _aiter(obj, *, _isasync=inspect.iscoroutinefunction):
     try:
         async_iter = cls.__aiter__
     except AttributeError:
-        raise TypeError(
-            '{0.__name__!r} object is not an async iterable'.format(cls))
+        raise TypeError("{0.__name__!r} object is not an async iterable".format(cls))
 
     async_iter = async_iter(obj)
     if _isasync(async_iter):
-        raise TypeError(
-            '{0.__name__!r} object is not an async iterable'.format(cls))
+        raise TypeError("{0.__name__!r} object is not an async iterable".format(cls))
     return async_iter
 
 
@@ -284,6 +306,13 @@ class AsyncIteratorPageSource(PageSource):
         The asynchronous iterator to paginate.
     per_page: :class:`int`
         How many elements to have per page.
+
+    Attributes
+    ------------
+    iterator: AsyncIterator[Any]
+        The async iterator of items to paginate.
+    per_page: :class:`int`
+        How many elements are in a page.
     """
 
     def __init__(self, iterator: AsyncIterator[DataType], *, per_page: int):
@@ -314,7 +343,7 @@ class AsyncIteratorPageSource(PageSource):
 
     async def _get_single_page(self, page_number: int) -> DataType:
         if page_number < 0:
-            raise IndexError('Negative page number.')
+            raise IndexError("Negative page number.")
 
         if not self._exhausted and len(self._cache) <= page_number:
             await self._iterate((page_number + 1) - len(self._cache))
@@ -322,7 +351,7 @@ class AsyncIteratorPageSource(PageSource):
 
     async def _get_page_range(self, page_number: int) -> List[DataType]:
         if page_number < 0:
-            raise IndexError('Negative page number.')
+            raise IndexError("Negative page number.")
 
         base = page_number * self.per_page
         max_base = base + self.per_page
@@ -331,7 +360,7 @@ class AsyncIteratorPageSource(PageSource):
 
         entries = self._cache[base:max_base]
         if not entries and max_base > len(self._cache):
-            raise IndexError('Went too far')
+            raise IndexError("Went too far")
         return entries
 
     async def get_page(self, page_number: int) -> Union[DataType, List[DataType]]:
