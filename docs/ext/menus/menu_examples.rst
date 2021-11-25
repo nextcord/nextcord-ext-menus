@@ -12,8 +12,20 @@ For pagination examples, see :ref:`ext_menus_pagination_examples`.
 
 .. contents::
 
+Reaction Menus
+--------------
+
 Basic Reaction Menu
--------------------
+~~~~~~~~~~~~~~~~~~~
+
+This example shows how to make a reaction menu with three buttons.
+
+All reaction menus are created by subclassing :class:`Menu`.
+
+Reactions are added to the menu using the :func:`button` decorator.
+
+To start the menu, call :meth:`start() <Menu.start>` on the menu, passing
+:class:`Context <nextcord.ext.commands.Context>`.
 
 .. code:: py
 
@@ -45,7 +57,11 @@ Basic Reaction Menu
     bot.run('token')
 
 Wait for Confirmation
----------------------
+~~~~~~~~~~~~~~~~~~~~~
+
+In this example, we make a reaction menu that waits for a confirmation from the user.
+
+We do this by using the ``wait=True`` argument to :meth:`start() <Menu.start>`.
 
 .. code:: py
 
@@ -78,8 +94,21 @@ Wait for Confirmation
         if confirm:
             await ctx.send('deleted...')
 
+Button Menus
+------------
+
 Basic Button Menu
------------------
+~~~~~~~~~~~~~~~~~
+
+This example shows how to make a button menu like the reaction version shown above.
+
+To use buttons instead of reactions, we will use :class:`ButtonMenu` instead of :class:`Menu`
+and :func:`nextcord.ui.button` instead of the :func:`menus.button() <button>` decorator.
+
+We also need to pass ``view=self`` in the initial message for the buttons to appear.
+
+To start the menu, call :meth:`start() <ButtonMenu.start>` on the menu, passing
+:class:`Context <nextcord.ext.commands.Context>`.
 
 .. code:: py
 
@@ -107,7 +136,12 @@ Basic Button Menu
         await MyButtonMenu().start(ctx)
 
 Button Confirm
---------------
+~~~~~~~~~~~~~~
+
+In this example, we make a button menu that waits for a confirmation from the user.
+
+We use the ``wait=True`` argument to :meth:`start() <ButtonMenu.start>` and create
+the :class:`ButtonMenu` in the same way as shown before.
 
 .. code:: py
 
@@ -135,6 +169,6 @@ Button Confirm
             return self.result
 
     @bot.command()
-    async def button_confirm(ctx: commands.Context):
+    async def button_confirm(ctx):
         confirm = await ButtonConfirm("Confirm?").prompt(ctx)
         await ctx.send(f"You said: {confirm}")

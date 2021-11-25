@@ -102,10 +102,8 @@ representation and formatting of the data we want to paginate.
 The library comes with a few built-in page sources:
 
 -  :class:`ListPageSource`: The basic source that deals with a list of items.
--  :class:`GroupByPageSource`: A page source that groups a list into multiple
-    sublists similar to :func:`itertools.groupby`.
--  :class:`AsyncIteratorPageSource`: A page source that works with async
-    iterators for lazy fetching of data.
+-  :class:`GroupByPageSource`: A page source that groups a list into multiple sublists similar to :func:`itertools.groupby`.
+-  :class:`AsyncIteratorPageSource`: A page source that works with async iterators for lazy fetching of data.
 
 None of these page sources deal with formatting of data, leaving that up
 to you.

@@ -28,7 +28,7 @@ License
 -------
 
 | Copyright (c) 2021 The Nextcord Developers
-| Copyright (c) 2015-2020 Danny Y. (Rapptz)
+| Copyright (c) 2020-2021 Danny Y. (Rapptz)
 
 
 .. |Discord server invite| image:: https://discord.com/api/guilds/881118111967883295/embed.png
