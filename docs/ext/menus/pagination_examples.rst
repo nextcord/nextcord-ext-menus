@@ -39,7 +39,6 @@ supported by :class:`ButtonMenu`. Then we can start the menu by calling
 
 .. code:: py
 
-    import nextcord
     from nextcord.ext import commands, menus
 
     bot = commands.Bot(command_prefix="$")

@@ -29,7 +29,6 @@ To start the menu, call :meth:`start() <Menu.start>` on the menu, passing
 
 .. code:: py
 
-    import nextcord
     from nextcord.ext import commands, menus
 
     bot = commands.Bot(command_prefix="$")
