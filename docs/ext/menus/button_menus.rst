@@ -65,19 +65,23 @@ Instantiation is the same as for :ref:`Reaction Menus <ext_menus_reaction_menus>
 Pagination
 ~~~~~~~~~~
 
-A :class:`ButtonMenuPages` class is provided for pagination with button
-components.
+A :class:`ButtonMenuPages` class is provided for pagination with button components.
 
-:class:`ButtonMenuPages` works the same way as :class:`MenuPages`, but with :class:`Button <nextcord.ui.Button>` components instead of reactions.
+:class:`ButtonMenuPages` works the same way as :class:`MenuPages`, but with
+:class:`Button <nextcord.ui.Button>` components instead of reactions.
 
-A :class:`nextcord.ButtonStyle` can optionally be passed in to customize the
-appearance of the buttons.
+A :class:`nextcord.ButtonStyle` can optionally be passed in to customize the appearance of the buttons.
 
-``MySource`` is the same as :ref:`defined earlier <MySource>`, but the menu is instantiated
-with:
+The :class:`PageSource` deals with the data representation and formatting of the data we want to paginate.
+
+``MySource`` is the same as :ref:`defined earlier <MySource>`, but the menu is instantiated with
+:class:`ButtonMenuPages` as follows:
 
 .. code:: py
 
-    pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), clear_buttons_after=True, 
-                                  style=nextcord.ButtonStyle.primary)
+    pages = menus.ButtonMenuPages(
+        source=MySource(data),
+        clear_buttons_after=True,
+        style=nextcord.ButtonStyle.primary,
+    )
     await pages.start(ctx)

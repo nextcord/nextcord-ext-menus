@@ -125,7 +125,8 @@ For the sake of example, here’s a basic list source that is paginated:
             return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 
     # somewhere else:
-    pages = menus.MenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
+    data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+    pages = menus.MenuPages(source=MySource(data), clear_reactions_after=True)
     await pages.start(ctx)
 
 The :meth:`PageSource.format_page` can return either a :class:`str` for content,
