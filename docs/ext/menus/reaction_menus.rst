@@ -124,10 +124,11 @@ For the sake of example, here’s a basic list source that is paginated:
             offset = menu.current_page * self.per_page
             return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 
-    # somewhere else:
-    data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-    pages = menus.MenuPages(source=MySource(data), clear_reactions_after=True)
-    await pages.start(ctx)
+    @bot.command()
+    async def pages_example(ctx):
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+        pages = menus.MenuPages(source=MySource(data), clear_reactions_after=True)
+        await pages.start(ctx)
 
 The :meth:`PageSource.format_page` can return either a :class:`str` for content,
 :class:`nextcord.Embed` for an embed, or a :class:`dict` to pass into the kwargs

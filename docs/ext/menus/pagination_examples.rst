@@ -53,7 +53,7 @@ supported by :class:`ButtonMenu`. Then we can start the menu by calling
             return "\n".join(entries)
 
     @bot.command()
-    async def pages(ctx):
+    async def pages_example(ctx):
         data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
         pages = menus.ButtonMenuPages(
             source=MyPageSource(data),
@@ -154,7 +154,7 @@ supported by Discord. These are: ``primary`` (blurple), ``secondary`` (gray), ``
 .. code:: py
 
     @bot.command()
-    async def pages(ctx):
+    async def button_style(ctx):
         data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
         pages = menus.ButtonMenuPages(
             source=MyPageSource(data),

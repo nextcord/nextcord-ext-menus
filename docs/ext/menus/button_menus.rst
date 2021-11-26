@@ -58,7 +58,9 @@ Instantiation is the same as for :ref:`Reaction Menus <ext_menus_reaction_menus>
 
 .. code:: py
 
-    await MyButtonMenu().start(ctx)
+    @bot.command()
+    async def menu_example(ctx):
+        await MyButtonMenu().start(ctx)
 
 .. _pagination-1:
 
@@ -79,9 +81,22 @@ The :class:`PageSource` deals with the data representation and formatting of the
 
 .. code:: py
 
-    pages = menus.ButtonMenuPages(
-        source=MySource(data),
-        clear_buttons_after=True,
-        style=nextcord.ButtonStyle.primary,
-    )
-    await pages.start(ctx)
+    from nextcord.ext import menus
+
+    class MySource(menus.ListPageSource):
+        def __init__(self, data):
+            super().__init__(data, per_page=4)
+
+        async def format_page(self, menu, entries):
+            offset = menu.current_page * self.per_page
+            return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
+
+    @bot.command()
+    async def pages_example(ctx):
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+        pages = menus.ButtonMenuPages(
+            source=MySource(data),
+            clear_buttons_after=True,
+            style=nextcord.ButtonStyle.primary,
+        )
+        await pages.start(ctx)
