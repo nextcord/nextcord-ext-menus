@@ -130,7 +130,7 @@ class PageSource:
         menu: :class:`Menu`
             The menu that wants to format this page.
         page: Any
-            The page returned by :meth:`PageSource.get_page`.
+            The page returned by :meth:`get_page`.
 
         Returns
         ---------

@@ -35,4 +35,4 @@ py -3 -m pip install -U nextcord-ext-menus
 ## License
 
 Copyright (c) 2021 The Nextcord Developers  
-Copyright (c) 2015-2020 Danny Y. (Rapptz)
+Copyright (c) 2020-2021 Danny Y. (Rapptz)

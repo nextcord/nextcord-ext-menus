@@ -39,7 +39,8 @@ class MySource(menus.ListPageSource):
 
 @bot.command()
 async def pages(ctx):
-    pages = CustomEmojiButtonMenuPages(source=MySource(range(1, 100)))
+    data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+    pages = CustomEmojiButtonMenuPages(source=MySource(data))
     await pages.start(ctx)
 
 

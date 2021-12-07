@@ -102,10 +102,8 @@ representation and formatting of the data we want to paginate.
 The library comes with a few built-in page sources:
 
 -  :class:`ListPageSource`: The basic source that deals with a list of items.
--  :class:`GroupByPageSource`: A page source that groups a list into multiple
-    sublists similar to :func:`itertools.groupby`.
--  :class:`AsyncIteratorPageSource`: A page source that works with async
-    iterators for lazy fetching of data.
+-  :class:`GroupByPageSource`: A page source that groups a list into multiple sublists similar to :func:`itertools.groupby`.
+-  :class:`AsyncIteratorPageSource`: A page source that works with async iterators for lazy fetching of data.
 
 None of these page sources deal with formatting of data, leaving that up
 to you.
@@ -126,9 +124,11 @@ For the sake of example, here’s a basic list source that is paginated:
             offset = menu.current_page * self.per_page
             return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 
-    # somewhere else:
-    pages = menus.MenuPages(source=MySource(range(1, 100)), clear_reactions_after=True)
-    await pages.start(ctx)
+    @bot.command()
+    async def pages_example(ctx):
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+        pages = menus.MenuPages(source=MySource(data), clear_reactions_after=True)
+        await pages.start(ctx)
 
 The :meth:`PageSource.format_page` can return either a :class:`str` for content,
 :class:`nextcord.Embed` for an embed, or a :class:`dict` to pass into the kwargs
