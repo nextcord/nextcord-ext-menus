@@ -13,30 +13,50 @@ handle splitting data into pages, sending the initial message, timeout actions, 
 :meth:`next page <MenuPages.go_to_next_page>`, :meth:`last page <MenuPages.go_to_last_page>`, 
 and :meth:`stop <MenuPages.stop_pages>` all for you.
 
+The examples below are for button pagination. If you want to use reaction menus, you can simply
+replace the :class:`ButtonMenuPages` with :class:`MenuPages` and replace parameters such as
+``clear_buttons_after`` and ``disable_buttons_after`` with ``clear_reactions_after``.
+
 .. contents::
 
 Basic Pagination
 ----------------
 
+In this example, we'll create a button pagination menu that shows items in a message for each page.
+
+To get started, we will need a :class:`PageSource` object that will define how many list items to
+show on each page, and how to display them. In the example below, :class:`ListPageSource` is
+subclassed to provide these details: ``per_page`` is set to 4 to show four items per page and
+``format_page`` is defined to display a given four entries in a message, each on a separate line.
+
+All that is left is instantiating and starting the menu.
+
+We will use the basic pagination class :class:`ButtonMenuPages` to handle the pagination
+and pass it the page source which holds our list of entries as the ``source`` parameter.
+We can optionally pass additional parameters such as the button style and any parameters
+supported by :class:`ButtonMenu`. Then we can start the menu by calling 
+:meth:`pages.start() <ButtonMenuPages.start>`.
+
 .. code:: py
 
-    import nextcord
     from nextcord.ext import commands, menus
 
     bot = commands.Bot(command_prefix="$")
 
     class MyPageSource(menus.ListPageSource):
         def __init__(self, data):
+            # this is where you can set how many items you want per page
             super().__init__(data, per_page=4)
 
         async def format_page(self, menu, entries):
+            # this is where you can format the entries for the page
             return "\n".join(entries)
 
     @bot.command()
-    async def pages(ctx):
-        entries = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+    async def pages_example(ctx):
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
         pages = menus.ButtonMenuPages(
-            source=MyPageSource(entries),
+            source=MyPageSource(data),
             delete_message_after=True,
         )
         await pages.start(ctx)
@@ -45,6 +65,21 @@ Basic Pagination
 
 Paginated Embeds Using Fields
 -----------------------------
+
+In this example, we will be creating an embed with fields instead of showing the entries in
+message content.
+
+Since fields have a name and value, the data we pass into the :class:`PageSource` is a list of
+tuples. The first item in the tuple is the name and the second is the value.
+If you do not want to be restricted to having a name and value for each item, you can use the
+embed description as shown in the example that follows this one.
+
+The entries argument in ``format_page`` will also be a list of tuples now, so we can iterate
+over the entries and create a field for each using ``entry[0]`` and ``entry[1]`` as the name
+and value respectively.
+
+The return value of ``format_page`` is a :class:`nextcord.Embed` which will appear in the
+message when the page is shown.
 
 .. code:: py
 
@@ -62,17 +97,17 @@ Paginated Embeds Using Fields
     @bot.command()
     async def button_embed_field(ctx):
         fields = [
-            ["Black", "#000000"],
-            ["Blue", "#0000FF"],
-            ["Brown", "#A52A2A"],
-            ["Green", "#00FF00"],
-            ["Grey", "#808080"],
-            ["Orange", "#FFA500"],
-            ["Pink", "#FFC0CB"],
-            ["Purple", "#800080"],
-            ["Red", "#FF0000"],
-            ["White", "#FFFFFF"],
-            ["Yellow", "#FFFF00"],
+            ("Black", "#000000"),
+            ("Blue", "#0000FF"),
+            ("Brown", "#A52A2A"),
+            ("Green", "#00FF00"),
+            ("Grey", "#808080"),
+            ("Orange", "#FFA500"),
+            ("Pink", "#FFC0CB"),
+            ("Purple", "#800080"),
+            ("Red", "#FF0000"),
+            ("White", "#FFFFFF"),
+            ("Yellow", "#FFFF00"),
         ]
         pages = menus.ButtonMenuPages(
             source=MyEmbedFieldPageSource(fields),
@@ -82,6 +117,10 @@ Paginated Embeds Using Fields
 
 Paginated Embeds Using Descriptions
 -----------------------------------
+
+In this example, we will use the embed description to show entries.
+
+``data`` is a list of strings, so we can join entries with ``"\n"`` to create the description.
 
 .. code:: py
 
@@ -104,8 +143,33 @@ Paginated Embeds Using Descriptions
         )
         await pages.start(ctx)
 
+Change Button Colors
+--------------------
+
+When instantiating a :class:`ButtonMenuPages` object, you can pass a ``style`` parameter
+to change the color of the buttons. You may choose from any :class:`ButtonStyle <nextcord.ButtonStyle>`
+supported by Discord. These are: ``primary`` (blurple), ``secondary`` (gray), ``success`` (green), and
+``danger`` (red).
+
+.. code:: py
+
+    @bot.command()
+    async def button_style(ctx):
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+        pages = menus.ButtonMenuPages(
+            source=MyPageSource(data),
+            style=nextcord.ButtonStyle.success,
+        )
+        await pages.start(ctx)
+
 Custom Emojis
 -------------
+
+To use custom emojis in pagination, you can subclass :class:`ButtonMenuPages` and override
+the ``FIRST_PAGE``, ``PREVIOUS_PAGE``, ``NEXT_PAGE``. ``LAST_PAGE``, and ``STOP`` attributes.
+
+Then, when instantiating the menu, you will use your custom class's name in place of
+``menus.ButtonMenuPages``.
 
 .. code:: py
 
@@ -119,11 +183,20 @@ Custom Emojis
 
     @bot.command()
     async def custom_buttons(ctx):
-        pages = CustomButtonMenuPages(source=MySource(range(1, 100)))
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+        pages = CustomButtonMenuPages(source=MySource(data))
         await pages.start(ctx)
 
 Remove Stop Button
 ------------------
+
+Adding ``inherit_buttons=False`` as shown below will allow you to customize the buttons
+that get displayed in the menu.
+
+You can choose to leave out any of the buttons or add custom labels and styles using the
+respective parameters to :class:`MenuPaginationButton`.
+
+In the example below, we will remove the stop button by adding only the other four buttons.
 
 .. code:: py
 
@@ -139,21 +212,29 @@ Remove Stop Button
             super().__init__(source, timeout=timeout)
             
             # Add the buttons we want
-            self.add_item(menus.MenuPaginationButton(emoji=self.FIRST_PAGE, label="First"))
-            self.add_item(menus.MenuPaginationButton(emoji=self.PREVIOUS_PAGE, label="Prev"))
-            self.add_item(menus.MenuPaginationButton(emoji=self.NEXT_PAGE, label="Next"))
-            self.add_item(menus.MenuPaginationButton(emoji=self.LAST_PAGE, label="Last"))
+            self.add_item(menus.MenuPaginationButton(emoji=self.FIRST_PAGE))
+            self.add_item(menus.MenuPaginationButton(emoji=self.PREVIOUS_PAGE))
+            self.add_item(menus.MenuPaginationButton(emoji=self.NEXT_PAGE))
+            self.add_item(menus.MenuPaginationButton(emoji=self.LAST_PAGE))
             
             # Disable buttons that are unavailable to be pressed at the start
             self._disable_unavailable_buttons()
 
     @bot.command()
     async def removed_buttons(ctx):
-        pages = NoStopButtonMenuPages(source=MySource(range(1, 100)))
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+        pages = NoStopButtonMenuPages(source=MySource(data))
         await pages.start(ctx)
 
 GroupByPageSource
 -----------------
+
+:class:`GroupByPageSource` is an alternative to :class:`ListPageSource` that allows you to
+group entries into multiple sublists similar to :func:`itertools.groupby`. Only entries
+having the same group key will be displayed together on a single page. In the example below,
+there are three keys: ``test``, ``other``, and ``okay``. Entries will be paginated within
+each group, but when all entries from a group have been displayed, the next group will only
+start on the next page.
 
 .. code:: py
 
@@ -174,7 +255,7 @@ GroupByPageSource
             return f'**{entry.key}**\n{joined}\nPage {menu.current_page + 1}/{self.get_max_pages()}'
 
     @bot.command()
-    async def group_by_page_source_example(ctx: commands.Context):
+    async def group_by_page_source_example(ctx):
         pages = menus.ButtonMenuPages(
             source=Source(data, key=lambda t: t.key, per_page=12),
             clear_reactions_after=True,
@@ -183,6 +264,12 @@ GroupByPageSource
 
 AsyncIteratorPageSource
 -----------------------
+
+Another way to paginate is to use an :class:`AsyncIteratorPageSource` which works with async
+iterators for lazy fetching of data. This is useful when you have a large amount of data to
+paginate and you don't want to load all of it into memory.
+
+Instead of a list of data, you pass a generator that yields entries as they are needed.
 
 .. code:: py
 
@@ -206,12 +293,16 @@ AsyncIteratorPageSource
             return f'\n'.join(f'{i}. {v!r}' for i, v in enumerate(entries, start=start))
 
     @bot.command()
-    async def async_iterator_page_source_example(ctx: commands.Context):
+    async def async_iterator_page_source_example(ctx):
         pages = menus.ButtonMenuPages(source=Source())
         await pages.start(ctx)     
 
 Pagination + Select Menus
 -------------------------
+
+To add additional UI components to the pagination, you can subclass :class:`ButtonMenuPages`
+with ``inherit_buttons=False`` and add the buttons you want along with other components such
+as a :class:`Select Menu <nextcord.ui.Select>`.
 
 See `Nextcord's dropdown example <https://github.com/nextcord/nextcord/blob/master/examples/views/dropdown.py>`_
 for an example on how to create a :class:`Select Menu <nextcord.ui.Select>`.
@@ -230,11 +321,19 @@ for an example on how to create a :class:`Select Menu <nextcord.ui.Select>`.
 
     @bot.command()
     async def button_select_pages(ctx):
-        pages = SelectButtonMenuPages(source=MySource(range(1, 100)))
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+        pages = SelectButtonMenuPages(source=MySource(data))
         await pages.start(ctx)
 
 Paginated Help Command Cog
 --------------------------
+
+Here is an example of a paginated help command with ``nextcord-ext-menus``.
+
+It can be loaded as an extension just as any other :class:`Cog <nextcord.ext.commands.Cog>`.
+
+For more details on how this can be used, check out this useful
+`gist <https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96>`_.
 
 .. code:: py
 

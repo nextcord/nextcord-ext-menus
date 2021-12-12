@@ -58,26 +58,45 @@ Instantiation is the same as for :ref:`Reaction Menus <ext_menus_reaction_menus>
 
 .. code:: py
 
-    await MyButtonMenu().start(ctx)
+    @bot.command()
+    async def menu_example(ctx):
+        await MyButtonMenu().start(ctx)
 
 .. _pagination-1:
 
 Pagination
 ~~~~~~~~~~
 
-A :class:`ButtonMenuPages` class is provided for pagination with button
-components.
+A :class:`ButtonMenuPages` class is provided for pagination with button components.
 
-:class:`ButtonMenuPages` works the same way as :class:`MenuPages`, but with :class:`Button <nextcord.ui.Button>` components instead of reactions.
+:class:`ButtonMenuPages` works the same way as :class:`MenuPages`, but with
+:class:`Button <nextcord.ui.Button>` components instead of reactions.
 
-A :class:`nextcord.ButtonStyle` can optionally be passed in to customize the
-appearance of the buttons.
+A :class:`nextcord.ButtonStyle` can optionally be passed in to customize the appearance of the buttons.
 
-``MySource`` is the same as :ref:`defined earlier <MySource>`, but the menu is instantiated
-with:
+The :class:`PageSource` deals with the data representation and formatting of the data we want to paginate.
+
+``MySource`` is the same as :ref:`defined earlier <MySource>`, but the menu is instantiated with
+:class:`ButtonMenuPages` as follows:
 
 .. code:: py
 
-    pages = menus.ButtonMenuPages(source=MySource(range(1, 100)), clear_buttons_after=True, 
-                                  style=nextcord.ButtonStyle.primary)
-    await pages.start(ctx)
+    from nextcord.ext import menus
+
+    class MySource(menus.ListPageSource):
+        def __init__(self, data):
+            super().__init__(data, per_page=4)
+
+        async def format_page(self, menu, entries):
+            offset = menu.current_page * self.per_page
+            return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
+
+    @bot.command()
+    async def pages_example(ctx):
+        data = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+        pages = menus.ButtonMenuPages(
+            source=MySource(data),
+            clear_buttons_after=True,
+            style=nextcord.ButtonStyle.primary,
+        )
+        await pages.start(ctx)

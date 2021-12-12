@@ -67,6 +67,9 @@ class MenuPagesBase(Menu):
     def should_add_reactions(self) -> bool:
         return self.should_add_reactions_or_buttons()
 
+    def should_add_buttons(self) -> bool:
+        return self.should_add_reactions_or_buttons()
+
     def should_add_reactions_or_buttons(self) -> bool:
         return self._source.is_paginating()
 
@@ -268,8 +271,8 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         if "disable_buttons_after" not in kwargs:
             kwargs["disable_buttons_after"] = True
         super().__init__(source, **kwargs)
-        # skip adding buttons if inherit_buttons=False was passed to metaclass
-        if not self.__inherit_buttons__:
+        # skip adding buttons if inherit_buttons=False was passed to metaclass or only one page
+        if not self.__inherit_buttons__ or not self.should_add_buttons():
             return
         # add buttons to the view
         pagination_emojis = (

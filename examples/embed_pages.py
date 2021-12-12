@@ -16,11 +16,23 @@ class MyEmbedFieldPageSource(menus.ListPageSource):
         embed.set_footer(text=f'Page {menu.current_page + 1}/{self.get_max_pages()}')
         return embed
 
-
 @bot.command()
 async def button_embed_field(ctx):
+    data = [
+        ("Black", "#000000"),
+        ("Blue", "#0000FF"),
+        ("Brown", "#A52A2A"),
+        ("Green", "#00FF00"),
+        ("Grey", "#808080"),
+        ("Orange", "#FFA500"),
+        ("Pink", "#FFC0CB"),
+        ("Purple", "#800080"),
+        ("Red", "#FF0000"),
+        ("White", "#FFFFFF"),
+        ("Yellow", "#FFFF00"),
+    ]
     pages = menus.ButtonMenuPages(
-        source=MyEmbedFieldPageSource(list(zip('abcdefghij', range(1, 11)))),
+        source=MyEmbedFieldPageSource(data),
         clear_buttons_after=True,
     )
     await pages.start(ctx)
@@ -28,8 +40,21 @@ async def button_embed_field(ctx):
 
 @bot.command()
 async def reaction_embed_field(ctx):
+    data = [
+        ("Black", "#000000"),
+        ("Blue", "#0000FF"),
+        ("Brown", "#A52A2A"),
+        ("Green", "#00FF00"),
+        ("Grey", "#808080"),
+        ("Orange", "#FFA500"),
+        ("Pink", "#FFC0CB"),
+        ("Purple", "#800080"),
+        ("Red", "#FF0000"),
+        ("White", "#FFFFFF"),
+        ("Yellow", "#FFFF00"),
+    ]
     pages = menus.MenuPages(
-        source=MyEmbedFieldPageSource(list(zip('abcdefghij', range(1, 11)))),
+        source=MyEmbedFieldPageSource(data),
         clear_reactions_after=True,
     )
     await pages.start(ctx)
