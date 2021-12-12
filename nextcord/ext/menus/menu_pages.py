@@ -121,6 +121,9 @@ class MenuPagesBase(Menu):
     ):
         await self._source._prepare_once()
         await super().start(ctx, channel=channel, wait=wait)
+        # If we're not paginating, we can remove the pagination buttons
+        if not self._source.is_paginating():
+            await self.clear()
 
     async def show_checked_page(self, page_number: int):
         max_pages = self._source.get_max_pages()
