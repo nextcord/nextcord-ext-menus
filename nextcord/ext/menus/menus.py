@@ -240,7 +240,10 @@ class Menu(metaclass=_MenuMeta):
         Whether to verify embed permissions as well.
     ctx: Optional[:class:`commands.Context`]
         The context that started this pagination session or ``None`` if it hasn't
-        been started yet.
+        been started yet or :class:`nextcord.Interaction` is used instead.
+    interaction: Optional[:class:`nextcord.Interaction`]
+        The interaction that started this pagination session or ``None`` if it hasn't
+        been started yet or :class:`commands.Context` is used instead.
     bot: Optional[:class:`commands.Bot`]
         The bot that is running this pagination session or ``None`` if it hasn't
         been started yet.
@@ -270,6 +273,7 @@ class Menu(metaclass=_MenuMeta):
         self._running = True
         self.message = message
         self.ctx = None
+        self.interaction = None
         self.bot = None
         self._author_id = None
         self._buttons = self.__class__.get_buttons()
@@ -603,14 +607,16 @@ class Menu(metaclass=_MenuMeta):
     async def start(
         self,
         ctx: Optional[commands.Context] = None,
-        *,
         interaction: Optional[nextcord.Interaction] = None,
         channel: Optional[nextcord.abc.Messageable] = None,
-        wait: bool = False
+        wait: bool = False,
     ):
         """|coro|
 
         Starts the interactive menu session.
+
+        To start a menu session, you must provide either a :class:`Context` or
+        a :class:`nextcord.Interaction` object.
 
         Parameters
         -----------
@@ -641,6 +647,11 @@ class Menu(metaclass=_MenuMeta):
 
         self.ctx = ctx
         self.interaction = interaction
+        # ensure only one of ctx and interaction is set
+        if ctx is None and interaction is None:
+            raise ValueError("ctx or interaction must be set.")
+        if ctx is not None and interaction is not None:
+            raise ValueError("ctx and interaction cannot both be set.")
         # Note: interaction.bot does not exist until nextcord/nextcord#348 is merged
         self.bot = bot = getattr(ctx, "bot", getattr(interaction, "bot", None))
         author = getattr(ctx, "author", getattr(interaction, "user", None))
