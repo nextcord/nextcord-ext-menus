@@ -328,6 +328,9 @@ for an example on how to create a :class:`Select Menu <nextcord.ui.Select>`.
 Menu in Slash Command Response
 ------------------------------
 
+To use a menu in a slash command, we need to pass ``interaction`` to :meth:`start() <Menu.start>` 
+as a keyword argument instead of ``ctx``.
+
 .. code:: py
 
     @bot.slash_command(guild_ids=[TEST_GUILD_ID], name="slashpages")
