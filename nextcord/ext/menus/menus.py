@@ -602,8 +602,9 @@ class Menu(metaclass=_MenuMeta):
 
     async def start(
         self,
-        ctx: commands.Context,
+        ctx: Optional[commands.Context] = None,
         *,
+        interaction: Optional[nextcord.Interaction] = None,
         channel: Optional[nextcord.abc.Messageable] = None,
         wait: bool = False
     ):
@@ -615,6 +616,8 @@ class Menu(metaclass=_MenuMeta):
         -----------
         ctx: :class:`Context`
             The invocation context to use.
+        interaction: :class:`Interaction`
+            The interaction context to use for slash and component responses.
         channel: :class:`nextcord.abc.Messageable`
             The messageable to send the message to. If not given
             then it defaults to the channel in the context.
@@ -636,10 +639,14 @@ class Menu(metaclass=_MenuMeta):
         except AttributeError:
             pass
 
-        self.bot = bot = ctx.bot
         self.ctx = ctx
-        self._author_id = ctx.author.id
-        channel = channel or ctx.channel
+        self.interaction = interaction
+        # Note: interaction.bot does not exist until nextcord/nextcord#348 is merged
+        self.bot = bot = getattr(ctx, "bot", getattr(interaction, "bot", None))
+        author = getattr(ctx, "author", getattr(interaction, "user", None))
+        self._author_id = getattr(author, "id", None)
+        channel = ctx.channel if ctx and channel is None else channel
+        channel = interaction.channel if interaction else channel
         me = channel.guild.me if hasattr(channel, "guild") else ctx.bot.user
         permissions = channel.permissions_for(me)
         self.__me = nextcord.Object(id=me.id)
