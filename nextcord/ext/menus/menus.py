@@ -653,11 +653,9 @@ class Menu(metaclass=_MenuMeta):
         if ctx is not None and interaction is not None:
             raise ValueError("ctx and interaction cannot both be set.")
         # Note: interaction.bot does not exist until nextcord/nextcord#348 is merged
-        self.bot = bot = getattr(ctx, "bot", getattr(interaction, "bot", None))
-        author = getattr(ctx, "author", getattr(interaction, "user", None))
-        self._author_id = getattr(author, "id", None)
-        channel = ctx.channel if ctx and channel is None else channel
-        channel = interaction.channel if interaction else channel
+        self.bot = bot = getattr(ctx, "bot", None) or getattr(interaction, "bot", None)
+        self._author_id = ctx.author.id if ctx else interaction.user.id
+        channel = channel or getattr(ctx, "channel", None) or interaction.channel
         me = channel.guild.me if hasattr(channel, "guild") else ctx.bot.user
         permissions = channel.permissions_for(me)
         self.__me = nextcord.Object(id=me.id)
