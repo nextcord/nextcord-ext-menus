@@ -339,7 +339,10 @@ class AsyncIteratorPageSource(PageSource):
 
     def is_paginating(self) -> bool:
         """:class:`bool`: Whether pagination is required."""
-        return len(self._cache) > self.per_page
+        # If we have not prepared yet, we do not know if we are paginating, so we return True
+        # This is to ensure that the buttons will be created in the case we are paginating
+        # If we have prepared, but we are exhausted before 1 page, we are not paginating
+        return not self._cache or len(self._cache) > self.per_page
 
     async def _get_single_page(self, page_number: int) -> DataType:
         if page_number < 0:
