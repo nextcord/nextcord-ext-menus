@@ -252,6 +252,8 @@ class Menu(metaclass=_MenuMeta):
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
         message you want to attach a menu to.
+    ephemeral: :class:`bool`
+            Whether to make the response ephemeral when using an interaction response.
     """
 
     def __init__(
@@ -274,6 +276,7 @@ class Menu(metaclass=_MenuMeta):
         self.message = message
         self.ctx = None
         self.interaction = None
+        self.ephemeral = False
         self.bot = None
         self._author_id = None
         self._buttons = self.__class__.get_buttons()
@@ -610,26 +613,31 @@ class Menu(metaclass=_MenuMeta):
         interaction: Optional[nextcord.Interaction] = None,
         channel: Optional[nextcord.abc.Messageable] = None,
         wait: bool = False,
+        ephemeral: bool = False,
     ):
         """|coro|
 
         Starts the interactive menu session.
 
-        To start a menu session, you must provide either a :class:`Context` or
-        a :class:`nextcord.Interaction` object.
+        To start a menu session, you must provide either a
+        :class:`Context` or a :class:`nextcord.Interaction` object.
 
         Parameters
         -----------
         ctx: :class:`Context`
             The invocation context to use.
         interaction: :class:`Interaction`
-            The interaction context to use for slash and component responses.
+            The interaction context to use for slash and
+            component responses.
         channel: :class:`nextcord.abc.Messageable`
             The messageable to send the message to. If not given
             then it defaults to the channel in the context.
         wait: :class:`bool`
             Whether to wait until the menu is completed before
             returning back to the caller.
+        ephemeral: :class:`bool`
+            Whether to make the response ephemeral when using an
+            interaction response.
 
         Raises
         -------
@@ -647,6 +655,7 @@ class Menu(metaclass=_MenuMeta):
 
         self.ctx = ctx
         self.interaction = interaction
+        self.ephemeral = ephemeral
         # ensure only one of ctx and interaction is set
         if ctx is None and interaction is None:
             raise ValueError("ctx or interaction must be set.")
