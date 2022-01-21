@@ -645,6 +645,8 @@ class Menu(metaclass=_MenuMeta):
             An error happened when verifying permissions.
         nextcord.HTTPException
             Adding a reaction failed.
+        TypeError
+            No context or interaction was given or both were given.
         """
 
         # Clear the reaction buttons cache and re-compute if possible.
@@ -661,10 +663,9 @@ class Menu(metaclass=_MenuMeta):
             raise ValueError("ctx or interaction must be set.")
         if ctx is not None and interaction is not None:
             raise ValueError("ctx and interaction cannot both be set.")
-        # Note: interaction.bot does not exist until nextcord/nextcord#348 is merged
-        self.bot = bot = getattr(ctx, "bot", None) or getattr(interaction, "bot", None)
+        self.bot = bot = ctx.bot if ctx else interaction._state._get_client()
         self._author_id = ctx.author.id if ctx else interaction.user.id
-        channel = channel or getattr(ctx, "channel", None) or interaction.channel
+        channel = channel or (ctx.channel if ctx else interaction.channel)
         me = channel.guild.me if hasattr(channel, "guild") else ctx.bot.user
         permissions = channel.permissions_for(me)
         self.__me = nextcord.Object(id=me.id)
