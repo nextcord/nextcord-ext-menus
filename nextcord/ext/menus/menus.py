@@ -253,7 +253,7 @@ class Menu(metaclass=_MenuMeta):
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
         message you want to attach a menu to.
     ephemeral: :class:`bool`
-            Whether to make the response ephemeral when using an interaction response.
+        Whether to make the response ephemeral when using an interaction response.
     """
 
     def __init__(
@@ -645,7 +645,7 @@ class Menu(metaclass=_MenuMeta):
             An error happened when verifying permissions.
         nextcord.HTTPException
             Adding a reaction failed.
-        TypeError
+        ValueError
             No context or interaction was given or both were given.
         """
 
