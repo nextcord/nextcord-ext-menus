@@ -328,8 +328,10 @@ for an example on how to create a :class:`Select Menu <nextcord.ui.Select>`.
 Menu in Slash Command Response
 ------------------------------
 
-To use a menu in a slash command, we need to pass ``interaction`` to :meth:`start() <Menu.start>` 
-as a keyword argument instead of ``ctx``.
+To use a menu in a slash command or component response, we need to pass ``interaction`` to
+:meth:`start() <Menu.start>` as a keyword argument instead of ``ctx``.
+
+To make the response message ephemeral, we can pass ``ephemeral=True`` to :meth:`start() <Menu.start>` as well.
 
 .. code:: py
 

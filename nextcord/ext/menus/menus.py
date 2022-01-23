@@ -254,6 +254,7 @@ class Menu(metaclass=_MenuMeta):
         message you want to attach a menu to.
     ephemeral: :class:`bool`
         Whether to make the response ephemeral when using an interaction response.
+        Note: Ephemeral messages do not support reactions.
     """
 
     def __init__(
@@ -621,24 +622,26 @@ class Menu(metaclass=_MenuMeta):
         Starts the interactive menu session.
 
         To start a menu session, you must provide either a
-        :class:`Context` or a :class:`nextcord.Interaction` object.
+        :class:`Context <nextcord.ext.commands.Context>` or an :class:`Interaction <nextcord.Interaction>` object.
 
         Parameters
         -----------
-        ctx: :class:`Context`
+        ctx: :class:`Context <nextcord.ext.commands.Context>`
             The invocation context to use.
-        interaction: :class:`Interaction`
+        interaction: :class:`nextcord.Interaction`
             The interaction context to use for slash and
             component responses.
         channel: :class:`nextcord.abc.Messageable`
             The messageable to send the message to. If not given
-            then it defaults to the channel in the context.
+            then it defaults to the channel in the context
+            or interaction.
         wait: :class:`bool`
             Whether to wait until the menu is completed before
             returning back to the caller.
         ephemeral: :class:`bool`
             Whether to make the response ephemeral when using an
-            interaction response.
+            interaction response. Note: ephemeral messages do not
+            support reactions.
 
         Raises
         -------

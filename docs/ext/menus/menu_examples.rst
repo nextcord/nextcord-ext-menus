@@ -176,12 +176,14 @@ the :class:`ButtonMenu` in the same way as shown before.
 Slash Commands
 --------------
 
-To use a menu in a slash command, we need to pass ``interaction`` to :meth:`start() <Menu.start>` instead of ``ctx``.
+To use a menu in a slash command or component response, we need to pass ``interaction`` to :meth:`start() <Menu.start>` instead of ``ctx``.
 
 ``interaction`` must be passed as a keyword argument.
 
 Additionally, we will use :meth:`interaction.response.send_message() <nextcord.InteractionResponse.send_message>`
 in the :meth:`send_initial_message() <Menu.send_initial_message>` method to send the initial message.
+
+To make the response message ephemeral, we can pass ``ephemeral=True`` to :meth:`start() <Menu.start>` as well.
 
 .. code:: py
 
