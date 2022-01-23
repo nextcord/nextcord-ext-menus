@@ -611,6 +611,7 @@ class Menu(metaclass=_MenuMeta):
         self,
         ctx: Optional[commands.Context] = None,
         interaction: Optional[nextcord.Interaction] = None,
+        *,
         channel: Optional[nextcord.abc.Messageable] = None,
         wait: bool = False,
         ephemeral: bool = False,

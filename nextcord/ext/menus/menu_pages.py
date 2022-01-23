@@ -125,6 +125,7 @@ class MenuPagesBase(Menu):
         self,
         ctx: Optional[commands.Context] = None,
         interaction: Optional[nextcord.Interaction] = None,
+        *,
         channel: Optional[nextcord.abc.Messageable] = None,
         wait: Optional[bool] = False,
         ephemeral: bool = False,
@@ -283,7 +284,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         self,
         source: PageSource,
         style: nextcord.ButtonStyle = nextcord.ButtonStyle.secondary,
-        **kwargs
+        **kwargs,
     ):
         self.__button_menu_pages__ = True
         # make button pagination disable buttons on stop by default unless it's overridden
