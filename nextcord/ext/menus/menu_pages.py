@@ -127,7 +127,7 @@ class MenuPagesBase(Menu):
         interaction: Optional[nextcord.Interaction] = None,
         *,
         channel: Optional[nextcord.abc.Messageable] = None,
-        wait: Optional[bool] = False,
+        wait: bool = False,
         ephemeral: bool = False,
     ):
         await self._source._prepare_once()
