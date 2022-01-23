@@ -655,18 +655,24 @@ class Menu(metaclass=_MenuMeta):
         except AttributeError:
             pass
 
-        self.ctx = ctx
-        self.interaction = interaction
-        self.ephemeral = ephemeral
         # ensure only one of ctx and interaction is set
         if ctx is None and interaction is None:
             raise ValueError("ctx or interaction must be set.")
         if ctx is not None and interaction is not None:
             raise ValueError("ctx and interaction cannot both be set.")
-        self.bot = bot = ctx.bot if ctx else interaction._state._get_client()
-        self._author_id = ctx.author.id if ctx else interaction.user.id
-        channel = channel or (ctx.channel if ctx else interaction.channel)
-        me = channel.guild.me if hasattr(channel, "guild") else ctx.bot.user
+
+        self.ctx = ctx
+        self.interaction = interaction
+        self.ephemeral = ephemeral
+        if ctx is not None:
+            self.bot = ctx.bot
+            self._author_id = ctx.author.id
+            channel = channel or ctx.channel
+        else:
+            self.bot = getattr(interaction, "client", interaction._state._get_client())
+            self._author_id = interaction.user.id
+            channel = channel or interaction.channel
+        me = channel.guild.me if hasattr(channel, "guild") else self.bot.user
         permissions = channel.permissions_for(me)
         self.__me = nextcord.Object(id=me.id)
         self._verify_permissions(ctx, channel, permissions)
@@ -682,13 +688,13 @@ class Menu(metaclass=_MenuMeta):
             self.__tasks.clear()
 
             self._running = True
-            self.__tasks.append(bot.loop.create_task(self._internal_loop()))
+            self.__tasks.append(self.bot.loop.create_task(self._internal_loop()))
 
             async def add_reactions_task():
                 for emoji in self.buttons:
                     await msg.add_reaction(emoji)
 
-            self.__tasks.append(bot.loop.create_task(add_reactions_task()))
+            self.__tasks.append(self.bot.loop.create_task(add_reactions_task()))
 
             if wait:
                 await self._event.wait()
