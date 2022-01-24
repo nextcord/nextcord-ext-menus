@@ -110,17 +110,34 @@ class MenuPagesBase(Menu):
         """
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
+        # filter out kwargs that are "None"
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        # if there is an interaction, send an interaction response
+        if self.interaction is not None:
+            await self.interaction.response.send_message(
+                ephemeral=self.ephemeral, **kwargs
+            )
+            return await self.interaction.original_message()
+        # otherwise, send the message using the channel
         return await channel.send(**kwargs)
 
     async def start(
         self,
-        ctx: commands.Context,
+        ctx: Optional[commands.Context] = None,
+        interaction: Optional[nextcord.Interaction] = None,
         *,
         channel: Optional[nextcord.abc.Messageable] = None,
-        wait: Optional[bool] = False
+        wait: bool = False,
+        ephemeral: bool = False,
     ):
         await self._source._prepare_once()
-        await super().start(ctx, channel=channel, wait=wait)
+        await super().start(
+            ctx=ctx,
+            interaction=interaction,
+            channel=channel,
+            wait=wait,
+            ephemeral=ephemeral,
+        )
         # If we're not paginating, we can remove the pagination buttons
         if not self._source.is_paginating():
             await self.clear()
@@ -267,7 +284,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         self,
         source: PageSource,
         style: nextcord.ButtonStyle = nextcord.ButtonStyle.secondary,
-        **kwargs
+        **kwargs,
     ):
         self.__button_menu_pages__ = True
         # make button pagination disable buttons on stop by default unless it's overridden

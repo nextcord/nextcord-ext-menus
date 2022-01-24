@@ -240,7 +240,10 @@ class Menu(metaclass=_MenuMeta):
         Whether to verify embed permissions as well.
     ctx: Optional[:class:`commands.Context`]
         The context that started this pagination session or ``None`` if it hasn't
-        been started yet.
+        been started yet or :class:`nextcord.Interaction` is used instead.
+    interaction: Optional[:class:`nextcord.Interaction`]
+        The interaction that started this pagination session or ``None`` if it hasn't
+        been started yet or :class:`commands.Context` is used instead.
     bot: Optional[:class:`commands.Bot`]
         The bot that is running this pagination session or ``None`` if it hasn't
         been started yet.
@@ -249,6 +252,9 @@ class Menu(metaclass=_MenuMeta):
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
         message you want to attach a menu to.
+    ephemeral: :class:`bool`
+        Whether to make the response ephemeral when using an interaction response.
+        Note: Ephemeral messages do not support reactions.
     """
 
     def __init__(
@@ -270,6 +276,8 @@ class Menu(metaclass=_MenuMeta):
         self._running = True
         self.message = message
         self.ctx = None
+        self.interaction = None
+        self.ephemeral = False
         self.bot = None
         self._author_id = None
         self._buttons = self.__class__.get_buttons()
@@ -602,25 +610,38 @@ class Menu(metaclass=_MenuMeta):
 
     async def start(
         self,
-        ctx: commands.Context,
+        ctx: Optional[commands.Context] = None,
+        interaction: Optional[nextcord.Interaction] = None,
         *,
         channel: Optional[nextcord.abc.Messageable] = None,
-        wait: bool = False
+        wait: bool = False,
+        ephemeral: bool = False,
     ):
         """|coro|
 
         Starts the interactive menu session.
 
+        To start a menu session, you must provide either a
+        :class:`Context <nextcord.ext.commands.Context>` or an :class:`Interaction <nextcord.Interaction>` object.
+
         Parameters
         -----------
-        ctx: :class:`Context`
+        ctx: :class:`Context <nextcord.ext.commands.Context>`
             The invocation context to use.
+        interaction: :class:`nextcord.Interaction`
+            The interaction context to use for slash and
+            component responses.
         channel: :class:`nextcord.abc.Messageable`
             The messageable to send the message to. If not given
-            then it defaults to the channel in the context.
+            then it defaults to the channel in the context
+            or interaction.
         wait: :class:`bool`
             Whether to wait until the menu is completed before
             returning back to the caller.
+        ephemeral: :class:`bool`
+            Whether to make the response ephemeral when using an
+            interaction response. Note: ephemeral messages do not
+            support reactions.
 
         Raises
         -------
@@ -628,6 +649,8 @@ class Menu(metaclass=_MenuMeta):
             An error happened when verifying permissions.
         nextcord.HTTPException
             Adding a reaction failed.
+        ValueError
+            No context or interaction was given or both were given.
         """
 
         # Clear the reaction buttons cache and re-compute if possible.
@@ -636,11 +659,24 @@ class Menu(metaclass=_MenuMeta):
         except AttributeError:
             pass
 
-        self.bot = bot = ctx.bot
+        # ensure only one of ctx and interaction is set
+        if ctx is None and interaction is None:
+            raise ValueError("ctx or interaction must be set.")
+        if ctx is not None and interaction is not None:
+            raise ValueError("ctx and interaction cannot both be set.")
+
         self.ctx = ctx
-        self._author_id = ctx.author.id
-        channel = channel or ctx.channel
-        me = channel.guild.me if hasattr(channel, "guild") else ctx.bot.user
+        self.interaction = interaction
+        self.ephemeral = ephemeral
+        if ctx is not None:
+            self.bot = ctx.bot
+            self._author_id = ctx.author.id
+            channel = channel or ctx.channel
+        else:
+            self.bot = getattr(interaction, "client", interaction._state._get_client())
+            self._author_id = interaction.user.id
+            channel = channel or interaction.channel
+        me = channel.guild.me if hasattr(channel, "guild") else self.bot.user
         permissions = channel.permissions_for(me)
         self.__me = nextcord.Object(id=me.id)
         self._verify_permissions(ctx, channel, permissions)
@@ -656,13 +692,13 @@ class Menu(metaclass=_MenuMeta):
             self.__tasks.clear()
 
             self._running = True
-            self.__tasks.append(bot.loop.create_task(self._internal_loop()))
+            self.__tasks.append(self.bot.loop.create_task(self._internal_loop()))
 
             async def add_reactions_task():
                 for emoji in self.buttons:
                     await msg.add_reaction(emoji)
 
-            self.__tasks.append(bot.loop.create_task(add_reactions_task()))
+            self.__tasks.append(self.bot.loop.create_task(add_reactions_task()))
 
             if wait:
                 await self._event.wait()

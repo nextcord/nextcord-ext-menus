@@ -171,3 +171,39 @@ the :class:`ButtonMenu` in the same way as shown before.
     async def button_confirm(ctx):
         confirm = await ButtonConfirm("Confirm?").prompt(ctx)
         await ctx.send(f"You said: {confirm}")
+
+
+Slash Commands
+--------------
+
+To use a menu in a slash command or component response, we need to pass ``interaction`` to :meth:`start() <Menu.start>` instead of ``ctx``.
+
+``interaction`` must be passed as a keyword argument.
+
+Additionally, we will use :meth:`interaction.response.send_message() <nextcord.InteractionResponse.send_message>`
+in the :meth:`send_initial_message() <Menu.send_initial_message>` method to send the initial message.
+
+To make the response message ephemeral, we can pass ``ephemeral=True`` to :meth:`start() <Menu.start>` as well.
+
+.. code:: py
+
+    class MySlashButtonMenu(menus.ButtonMenu):
+        async def send_initial_message(self, ctx, channel):
+            await self.interaction.response.send_message(f"Hello {self.interaction.user}", view=self)
+            return await self.interaction.original_message()
+
+        @nextcord.ui.button(emoji="\N{THUMBS UP SIGN}")
+        async def on_thumbs_up(self, button, interaction):
+            await self.message.edit(content=f"Thanks {interaction.user}!")
+
+        @nextcord.ui.button(emoji="\N{THUMBS DOWN SIGN}")
+        async def on_thumbs_down(self, button, interaction):
+            await self.message.edit(content=f"That's not nice {interaction.user}...")
+
+        @nextcord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}\ufe0f")
+        async def on_stop(self, button, interaction):
+            self.stop()
+
+    @bot.slash_command(guild_ids=[TESTING_GUILD_ID], name="slashmenu")
+    async def slash_menu_example(interaction: nextcord.Interaction):
+        await MySlashButtonMenu().start(interaction=interaction)
