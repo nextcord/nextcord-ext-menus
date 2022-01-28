@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 import nextcord
 from nextcord.ext import commands
@@ -100,7 +100,9 @@ class MenuPagesBase(Menu):
 
     async def send_initial_message(
         self, ctx: commands.Context, channel: nextcord.abc.Messageable
-    ) -> nextcord.Message:
+    ) -> Optional[
+        Union[nextcord.Message, nextcord.InteractionMessage, nextcord.WebhookMessage]
+    ]:
         """|coro|
 
         The default implementation of :meth:`Menu.send_initial_message`
@@ -114,10 +116,8 @@ class MenuPagesBase(Menu):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         # if there is an interaction, send an interaction response
         if self.interaction is not None:
-            await self.interaction.response.send_message(
-                ephemeral=self.ephemeral, **kwargs
-            )
-            return await self.interaction.original_message()
+            message = await self.interaction.send(ephemeral=self.ephemeral, **kwargs)
+            return message or await self.interaction.original_message()
         # otherwise, send the message using the channel
         return await channel.send(**kwargs)
 
