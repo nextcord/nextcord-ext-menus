@@ -84,9 +84,18 @@ class MenuPagesBase(Menu):
         if isinstance(value, dict):
             return value
         elif isinstance(value, str):
-            return {"content": value, "embed": None}
+            return {"content": value}
         elif isinstance(value, nextcord.Embed):
-            return {"embed": value, "content": None}
+            return {"embed": value}
+        elif isinstance(value, list) and all(
+            isinstance(v, nextcord.Embed) for v in value
+        ):
+            return {"embeds": value}
+        raise TypeError(
+            "Expected {0!r} not {1.__class__!r}.".format(
+                (dict, str, nextcord.Embed, list[nextcord.Embed]), value
+            )
+        )
 
     async def show_page(self, page_number: int):
         """|coro|

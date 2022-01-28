@@ -15,7 +15,7 @@ DEFAULT_TIMEOUT = 180.0
 SendKwargsType = Dict[str, Union[str, nextcord.Embed, nextcord.ui.View, None]]
 
 # type definition for possible page formats
-PageFormatType = Union[str, nextcord.Embed, SendKwargsType]
+PageFormatType = Union[str, nextcord.Embed, list[nextcord.Embed], SendKwargsType]
 
 # type definition for emoji parameters
 EmojiType = Union[str, nextcord.Emoji, nextcord.PartialEmoji]
