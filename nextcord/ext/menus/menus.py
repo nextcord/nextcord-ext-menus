@@ -247,7 +247,7 @@ class Menu(metaclass=_MenuMeta):
     bot: Optional[:class:`commands.Bot`]
         The bot that is running this pagination session or ``None`` if it hasn't
         been started yet.
-    message: Optional[Union[:class:`nextcord.Message`, :class:`nextcord.InteractionMessage`, :class:`nextcord.WebhookMessage`]]
+    message: Optional[:class:`nextcord.Message`]
         The message that has been sent for handling the menu. This is the returned
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
@@ -719,9 +719,7 @@ class Menu(metaclass=_MenuMeta):
 
     async def send_initial_message(
         self, ctx: commands.Context, channel: nextcord.abc.Messageable
-    ) -> Optional[
-        Union[nextcord.Message, nextcord.InteractionMessage, nextcord.WebhookMessage]
-    ]:
+    ) -> nextcord.Message:
         """|coro|
 
         Sends the initial message for the menu session.
@@ -741,7 +739,7 @@ class Menu(metaclass=_MenuMeta):
 
         Returns
         --------
-        Optional[Union[:class:`nextcord.Message`, :class:`nextcord.InteractionMessage`, :class:`nextcord.WebhookMessage`]]
+        :class:`nextcord.Message`
             The message that has been sent.
         """
         raise NotImplementedError
@@ -812,7 +810,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
     bot: Optional[:class:`commands.Bot`]
         The bot that is running this pagination session or ``None`` if it hasn't
         been started yet.
-    message: Optional[Union[:class:`nextcord.Message`, :class:`nextcord.InteractionMessage`, :class:`nextcord.WebhookMessage`]]
+    message: Optional[:class:`nextcord.Message`]
         The message that has been sent for handling the menu. This is the returned
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing

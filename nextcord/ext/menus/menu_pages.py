@@ -100,9 +100,7 @@ class MenuPagesBase(Menu):
 
     async def send_initial_message(
         self, ctx: commands.Context, channel: nextcord.abc.Messageable
-    ) -> Optional[
-        Union[nextcord.Message, nextcord.InteractionMessage, nextcord.WebhookMessage]
-    ]:
+    ) -> nextcord.Message:
         """|coro|
 
         The default implementation of :meth:`Menu.send_initial_message`
