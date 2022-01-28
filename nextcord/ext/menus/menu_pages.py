@@ -93,7 +93,7 @@ class MenuPagesBase(Menu):
             return {"embeds": value}
         raise TypeError(
             "Expected {0!r} not {1.__class__!r}.".format(
-                (dict, str, nextcord.Embed, list[nextcord.Embed]), value
+                (dict, str, nextcord.Embed, List[nextcord.Embed]), value
             )
         )
 
