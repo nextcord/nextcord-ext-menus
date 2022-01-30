@@ -3,6 +3,7 @@
 [![Discord server invite](https://img.shields.io/discord/881118111967883295?color=blue&label=discord)](https://discord.gg/ZebatWssCB)
 [![PyPI version info](https://img.shields.io/pypi/v/nextcord-ext-menus.svg)](https://pypi.python.org/pypi/nextcord-ext-menus)
 [![PyPI supported Python versions](https://img.shields.io/pypi/pyversions/nextcord.svg)](https://pypi.python.org/pypi/nextcord)
+[![Nextcord-ext-menus Documentation](https://img.shields.io/readthedocs/nextcord-ext-menus.svg)](https://nextcord-ext-menus.readthedocs.io)
 
 A Nextcord extension that makes working with reaction menus and button component menus a bit easier.
 
