@@ -112,7 +112,7 @@ class PageSource:
 
         This method must return one of the following types.
 
-        If this method returns a ``str`` then it is interpreted as returning
+        If this method returns a :class:`str` then it is interpreted as returning
         the ``content`` keyword argument in :meth:`nextcord.Message.edit`
         and :meth:`nextcord.abc.Messageable.send`.
 
@@ -120,10 +120,14 @@ class PageSource:
         as returning the ``embed`` keyword argument in :meth:`nextcord.Message.edit`
         and :meth:`nextcord.abc.Messageable.send`.
 
-        If this method returns a ``dict`` then it is interpreted as the
+        If this method returns a :class:`List[nextcord.Embed]` then it is interpreted
+        as returning the ``embeds`` keyword argument in :meth:`nextcord.Message.edit`
+        and :meth:`nextcord.abc.Messageable.send`.
+
+        If this method returns a :class:`dict` then it is interpreted as the
         keyword-arguments that are used in both :meth:`nextcord.Message.edit`
-        and :meth:`nextcord.abc.Messageable.send`. The two of interest are
-        ``embed`` and ``content``.
+        and :meth:`nextcord.abc.Messageable.send`. A few of interest are:
+        ``content``, ``embed``, ``embeds``, ``file``, ``files``.
 
         Parameters
         ------------

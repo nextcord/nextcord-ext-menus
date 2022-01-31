@@ -77,6 +77,13 @@ class MenuPagesBase(Menu):
         """|coro|
 
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
+
+        Raises
+        --------
+        TypeError
+            The return value of :meth:`PageSource.format_page` was not a
+            :class:`str`, :class:`nextcord.Embed`, :class:`List[nextcord.Embed]`,
+            or :class:`dict`.
         """
         value: PageFormatType = await nextcord.utils.maybe_coroutine(
             self._source.format_page, self, page
@@ -84,9 +91,18 @@ class MenuPagesBase(Menu):
         if isinstance(value, dict):
             return value
         elif isinstance(value, str):
-            return {"content": value, "embed": None}
+            return {"content": value}
         elif isinstance(value, nextcord.Embed):
-            return {"embed": value, "content": None}
+            return {"embed": value}
+        elif isinstance(value, list) and all(
+            isinstance(v, nextcord.Embed) for v in value
+        ):
+            return {"embeds": value}
+        raise TypeError(
+            "Expected {0!r} not {1.__class__!r}.".format(
+                (dict, str, nextcord.Embed, List[nextcord.Embed]), value
+            )
+        )
 
     async def show_page(self, page_number: int):
         """|coro|
@@ -321,6 +337,13 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
     async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
         """|coro|
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
+
+        Raises
+        --------
+        TypeError
+            The return value of :meth:`PageSource.format_page` was not a
+            :class:`str`, :class:`nextcord.Embed`, :class:`List[nextcord.Embed]`,
+            or :class:`dict`.
         """
         kwargs = await super()._get_kwargs_from_page(page)
         # add view to kwargs if it's not already there
