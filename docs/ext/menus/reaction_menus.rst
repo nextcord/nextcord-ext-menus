@@ -131,5 +131,6 @@ For the sake of example, here’s a basic list source that is paginated:
         await pages.start(ctx)
 
 The :meth:`PageSource.format_page` can return either a :class:`str` for content,
-:class:`nextcord.Embed` for an embed, or a :class:`dict` to pass into the kwargs
+:class:`nextcord.Embed` for an embed, :class:`List[nextcord.Embed]` for
+sending multiple embeds, or a :class:`dict` to pass into the kwargs
 of :meth:`nextcord.Message.edit`.
