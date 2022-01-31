@@ -77,6 +77,13 @@ class MenuPagesBase(Menu):
         """|coro|
 
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
+
+        Raises
+        --------
+        TypeError
+            The return value of :meth:`PageSource.format_page` was not a
+            :class:`str`, :class:`nextcord.Embed`, :class:`List[nextcord.Embed]`,
+            or :class:`dict`.
         """
         value: PageFormatType = await nextcord.utils.maybe_coroutine(
             self._source.format_page, self, page
@@ -332,6 +339,13 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
     async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
         """|coro|
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
+
+        Raises
+        --------
+        TypeError
+            The return value of :meth:`PageSource.format_page` was not a
+            :class:`str`, :class:`nextcord.Embed`, :class:`List[nextcord.Embed]`,
+            or :class:`dict`.
         """
         kwargs = await super()._get_kwargs_from_page(page)
         # add view to kwargs if it's not already there
