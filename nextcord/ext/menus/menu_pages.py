@@ -114,10 +114,8 @@ class MenuPagesBase(Menu):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         # if there is an interaction, send an interaction response
         if self.interaction is not None:
-            await self.interaction.response.send_message(
-                ephemeral=self.ephemeral, **kwargs
-            )
-            return await self.interaction.original_message()
+            message = await self.interaction.send(ephemeral=self.ephemeral, **kwargs)
+            return message or await self.interaction.original_message()
         # otherwise, send the message using the channel
         return await channel.send(**kwargs)
 
