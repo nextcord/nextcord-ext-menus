@@ -65,7 +65,7 @@ class MenuPagesBase(Menu):
             await self.show_page(0)
 
     def should_add_reactions(self) -> bool:
-        return len(self.buttons) > 0
+        return self._source.is_paginating() and len(self.buttons) > 0
 
     def should_add_buttons(self) -> bool:
         return self._source.is_paginating()
