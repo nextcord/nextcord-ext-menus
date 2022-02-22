@@ -65,13 +65,10 @@ class MenuPagesBase(Menu):
             await self.show_page(0)
 
     def should_add_reactions(self) -> bool:
-        return self.should_add_reactions_or_buttons()
+        return super().should_add_reactions() and self._source.is_paginating()
 
     def should_add_buttons(self) -> bool:
-        return self.should_add_reactions_or_buttons()
-
-    def should_add_reactions_or_buttons(self) -> bool:
-        return self._source.is_paginating()
+        return super().should_add_buttons() and self._source.is_paginating()
 
     async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
         """|coro|
@@ -323,6 +320,9 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
             self.add_item(MenuPaginationButton(emoji=emoji, style=style))
         # disable buttons that are not available
         self._disable_unavailable_buttons()
+
+    def should_add_buttons(self) -> bool:
+        return self._source.is_paginating()
 
     async def show_page(self, page_number: int):
         """|coro|
