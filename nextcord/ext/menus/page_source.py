@@ -55,7 +55,10 @@ class PageSource:
 
     def is_paginating(self) -> bool:
         """An abstract method that notifies the :class:`MenuPagesBase` whether or not
-        to start paginating. This signals whether to add reactions or not.
+        to start paginating.
+
+        This signals whether to add menus to this page source. Menus can either be
+        buttons or reactions depending on the subclass.
 
         Subclasses must implement this.
 
