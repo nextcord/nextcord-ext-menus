@@ -13,8 +13,9 @@ class MyEmbedFieldPageSource(menus.ListPageSource):
         embed = Embed(title="Entries")
         for entry in entries:
             embed.add_field(name=entry[0], value=entry[1], inline=True)
-        embed.set_footer(text=f'Page {menu.current_page + 1}/{self.get_max_pages()}')
+        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
+
 
 @bot.command()
 async def button_embed_field(ctx):
@@ -66,13 +67,13 @@ class MyEmbedDescriptionPageSource(menus.ListPageSource):
 
     async def format_page(self, menu, entries):
         embed = Embed(title="Entries", description="\n".join(entries))
-        embed.set_footer(text=f'Page {menu.current_page + 1}/{self.get_max_pages()}')
+        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
 
 
 @bot.command()
 async def button_embed_description(ctx):
-    data = [f'Description for entry #{num}' for num in range(1, 51)]
+    data = [f"Description for entry #{num}" for num in range(1, 51)]
     pages = menus.ButtonMenuPages(
         source=MyEmbedDescriptionPageSource(data),
         clear_buttons_after=True,
@@ -80,4 +81,4 @@ async def button_embed_description(ctx):
     await pages.start(ctx)
 
 
-bot.run('token')
+bot.run("token")

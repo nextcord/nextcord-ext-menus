@@ -459,7 +459,10 @@ class Menu(metaclass=_MenuMeta):
         channel: nextcord.abc.Messageable,
         permissions: Permissions,
     ):
-        if not permissions.send_messages:
+        is_thread = isinstance(channel, nextcord.Thread)
+        if is_thread and not permissions.send_messages_in_threads:
+            raise CannotSendMessages()
+        elif not is_thread and not permissions.send_messages:
             raise CannotSendMessages()
 
         if self.check_embeds and not permissions.embed_links:
