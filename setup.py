@@ -66,7 +66,7 @@ setup(
     name="nextcord-ext-menus",
     version=version,
     author="Nextcord Developers",
-    description="An extension module to make reaction based menus with nextcord",
+    description="An extension module to make reaction and button component menus with nextcord",
     long_description=long_description(),
     long_description_content_type="text/markdown",
     url="https://github.com/nextcord/nextcord-ext-menus",
