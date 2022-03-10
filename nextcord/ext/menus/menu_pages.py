@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 import nextcord
 from nextcord.ext import commands
 
-from .constants import PageFormatType
+from .constants import PageFormatType, SendKwargsType
 from .menus import Button, ButtonMenu, Menu
 from .page_source import PageSource
 from .utils import First, Last, _cast_emoji
@@ -70,7 +70,7 @@ class MenuPagesBase(Menu):
     def should_add_buttons(self) -> bool:
         return super().should_add_buttons() and self._source.is_paginating()
 
-    async def _get_kwargs_from_page(self, page: List[Any]) -> Dict[str, Any]:
+    async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
         """|coro|
 
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
@@ -334,7 +334,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         # show the page
         await super().show_page(page_number)
 
-    async def _get_kwargs_from_page(self, page: List[Any]) -> Dict[str, Any]:
+    async def _get_kwargs_from_page(self, page: List[Any]) -> SendKwargsType:
         """|coro|
         Calls :meth:`PageSource.format_page` and returns a dict of send kwargs
 
