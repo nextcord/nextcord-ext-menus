@@ -1,3 +1,4 @@
+from collections import namedtuple
 import inspect
 import itertools
 from typing import (
@@ -225,22 +226,19 @@ KeyType = TypeVar("KeyType")
 KeyFuncType = Callable[[DataType], KeyType]
 
 
-class GroupByEntry:
-    """Represents an entry in a :class:`GroupByPageSource`.
+class GroupByEntry(namedtuple("GroupByEntry", "key items")):
+    """Named tuple representing an entry returned by
+    :meth:`GroupByPageSource.get_page` in a :class:`GroupByPageSource`.
 
     Attributes
     ------------
     key: Callable[[Any], Any]
-        A key function to do the grouping with.
+        A key of the :func:`itertools.groupby` function.
     items: Sequence[Any]
         Sequence of paginated items within the group.
     """
 
-    __slots__ = ("key", "items")
-
-    def __init__(self, **kwargs):
-        self.key: KeyFuncType = kwargs.pop("key")
-        self.items: DataType = kwargs.pop("items")
+    __slots__ = ()
 
 
 class GroupByPageSource(ListPageSource):
