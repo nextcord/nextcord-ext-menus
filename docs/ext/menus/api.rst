@@ -136,6 +136,14 @@ GroupByPageSource
     :members:
     :inherited-members:
 
+GroupByEntry
+>>>>>>>>>>>>
+
+.. attributetable:: GroupByEntry
+
+.. autoclass:: GroupByEntry
+    :members:
+
 AsyncIteratorPageSource
 ~~~~~~~~~~~~~~~~~~~~~~~
 

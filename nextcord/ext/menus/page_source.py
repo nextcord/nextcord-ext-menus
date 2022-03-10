@@ -5,14 +5,13 @@ from typing import (
     AsyncIterator,
     Callable,
     List,
-    NamedTuple,
     Optional,
     Sequence,
     TypeVar,
     Union,
 )
 
-from .constants import PageFormatType, SendKwargsType
+from .constants import PageFormatType
 from .menus import Menu
 
 DataType = TypeVar("DataType")
@@ -226,7 +225,19 @@ KeyType = TypeVar("KeyType")
 KeyFuncType = Callable[[DataType], KeyType]
 
 
-class _GroupByEntry(NamedTuple):
+class GroupByEntry:
+    """Represents an entry in a :class:`GroupByPageSource`.
+
+    Attributes
+    ------------
+    key: Callable[[Any], Any]
+        A key function to do the grouping with.
+    items: Sequence[Any]
+        Sequence of paginated items within the group.
+    """
+
+    __slots__ = ('key', 'items')
+
     key: KeyFuncType
     items: DataType
 
@@ -268,7 +279,7 @@ class GroupByPageSource(ListPageSource):
         sort: int = True
     ):
         self.__entries = entries if not sort else sorted(entries, key=key)
-        nested: List[_GroupByEntry] = []
+        nested: List[GroupByEntry] = []
         self.nested_per_page = per_page
         for key_i, group_i in itertools.groupby(self.__entries, key=key):
             group_i = list(group_i)
@@ -278,35 +289,44 @@ class GroupByPageSource(ListPageSource):
 
             # Chunk the nested pages
             nested.extend(
-                _GroupByEntry(key=key_i, items=group_i[i : i + per_page])
+                GroupByEntry(key=key_i, items=group_i[i : i + per_page])
                 for i in range(0, size, per_page)
             )
 
         super().__init__(nested, per_page=1)
 
-    async def get_page(self, page_number: int) -> DataType:
+    async def get_page(self, page_number: int) -> GroupByEntry:
+        """Returns a :class:`GroupByEntry` with ``key``, representing the
+        key of the :func:`itertools.groupby` function, and ``items``,
+        representing a sequence of paginated items within that group.
+
+        Returns
+        ---------
+        GroupByEntry
+            The data returned.
+        """
         return self.entries[page_number]
 
-    async def format_page(self, menu: Menu, entry: _GroupByEntry) -> SendKwargsType:
+    async def format_page(self, menu: Menu, entry: GroupByEntry) -> PageFormatType:
         """An abstract method to format the page.
 
-        This works similar to the :meth:`ListPageSource.format_page` except
-        the return type of the ``entry`` parameter is documented.
+        This works similar to the :meth:`PageSource.format_page` except
+        the type of the ``entry`` parameter is documented.
 
         Parameters
         ------------
         menu: :class:`Menu`
             The menu that wants to format this page.
         entry
-            A namedtuple with ``(key, items)`` representing the key of the
-            group by function and a sequence of paginated items within that
-            group.
+            The page returned by :meth:`get_page`. This will be a
+            :class:`GroupByEntry` with ``key``, representing the key of the
+            :func:`itertools.groupby` function, and ``items``, representing
+            a sequence of paginated items within that group.
 
         Returns
         ---------
-            A dictionary representing keyword-arguments to pass to
-            the message related calls.
         Union[:class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`], :class:`dict`]
+            See :meth:`PageSource.format_page`.
         """
         raise NotImplementedError
 
