@@ -123,7 +123,7 @@ class PageSource:
         as returning the ``embed`` keyword argument in :meth:`nextcord.Message.edit`
         and :meth:`nextcord.abc.Messageable.send`.
 
-        If this method returns a :class:`List[nextcord.Embed]` then it is interpreted
+        If this method returns a List[:class:`nextcord.Embed`] then it is interpreted
         as returning the ``embeds`` keyword argument in :meth:`nextcord.Message.edit`
         and :meth:`nextcord.abc.Messageable.send`.
 
@@ -141,7 +141,7 @@ class PageSource:
 
         Returns
         ---------
-        Union[:class:`str`, :class:`nextcord.Embed`, :class:`dict`]
+        Union[:class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`], :class:`dict`]
             See above.
         """
         raise NotImplementedError
@@ -281,9 +281,9 @@ class GroupByPageSource(ListPageSource):
 
         Returns
         ---------
-        :class:`dict`
             A dictionary representing keyword-arguments to pass to
             the message related calls.
+        Union[:class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`], :class:`dict`]
         """
         raise NotImplementedError
 
