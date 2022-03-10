@@ -236,10 +236,11 @@ class GroupByEntry:
         Sequence of paginated items within the group.
     """
 
-    __slots__ = ('key', 'items')
+    __slots__ = ("key", "items")
 
-    key: KeyFuncType
-    items: DataType
+    def __init__(self, **kwargs):
+        self.key: KeyFuncType = kwargs.pop("key")
+        self.items: DataType = kwargs.pop("items")
 
 
 class GroupByPageSource(ListPageSource):
