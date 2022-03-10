@@ -316,7 +316,7 @@ class GroupByPageSource(ListPageSource):
         ------------
         menu: :class:`Menu`
             The menu that wants to format this page.
-        entry
+        entry: GroupByEntry
             The page returned by :meth:`get_page`. This will be a
             :class:`GroupByEntry` with ``key``, representing the key of the
             :func:`itertools.groupby` function, and ``items``, representing
