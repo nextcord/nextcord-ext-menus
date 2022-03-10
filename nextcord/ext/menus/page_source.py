@@ -431,3 +431,26 @@ class AsyncIteratorPageSource(PageSource):
             return await self._get_single_page(page_number)
         else:
             return await self._get_page_range(page_number)
+
+    async def format_page(
+        self, menu: Menu, page: Union[DataType, List[DataType]]
+    ) -> PageFormatType:
+        """An abstract method to format the page.
+
+        This works similar to the :meth:`PageSource.format_page` except
+        the type of the ``page`` parameter is documented.
+
+        Parameters
+        ------------
+        menu: :class:`Menu`
+            The menu that wants to format this page.
+        page: Union[Any, List[Any]]
+            The page returned by :meth:`get_page`. This is either a single element
+            if :attr:`per_page` is set to ``1`` or a slice of the sequence otherwise.
+
+        Returns
+        ---------
+        Union[:class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`], :class:`dict`]
+            See :meth:`PageSource.format_page`.
+        """
+        raise NotImplementedError
