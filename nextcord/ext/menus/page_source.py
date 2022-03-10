@@ -234,11 +234,14 @@ class GroupByEntry(namedtuple("GroupByEntry", "key items")):
     ------------
     key: Callable[[Any], Any]
         A key of the :func:`itertools.groupby` function.
-    items: Sequence[Any]
-        Sequence of paginated items within the group.
+    items: List[Any]
+        Slice of the paginated items within the group.
     """
 
     __slots__ = ()
+
+    key: KeyFuncType
+    items: List[DataType]
 
 
 class GroupByPageSource(ListPageSource):
