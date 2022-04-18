@@ -1,3 +1,4 @@
+from collections import namedtuple
 import inspect
 import itertools
 from typing import (
@@ -5,14 +6,13 @@ from typing import (
     AsyncIterator,
     Callable,
     List,
-    NamedTuple,
     Optional,
     Sequence,
     TypeVar,
     Union,
 )
 
-from .constants import PageFormatType, SendKwargsType
+from .constants import PageFormatType
 from .menus import Menu
 
 DataType = TypeVar("DataType")
@@ -123,7 +123,7 @@ class PageSource:
         as returning the ``embed`` keyword argument in :meth:`nextcord.Message.edit`
         and :meth:`nextcord.abc.Messageable.send`.
 
-        If this method returns a :class:`List[nextcord.Embed]` then it is interpreted
+        If this method returns a List[:class:`nextcord.Embed`] then it is interpreted
         as returning the ``embeds`` keyword argument in :meth:`nextcord.Message.edit`
         and :meth:`nextcord.abc.Messageable.send`.
 
@@ -141,7 +141,7 @@ class PageSource:
 
         Returns
         ---------
-        Union[:class:`str`, :class:`nextcord.Embed`, :class:`dict`]
+        Union[:class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`], :class:`dict`]
             See above.
         """
         raise NotImplementedError
@@ -197,15 +197,51 @@ class ListPageSource(PageSource):
             base = page_number * self.per_page
             return self.entries[base : base + self.per_page]
 
+    async def format_page(
+        self, menu: Menu, page: Union[DataType, List[DataType]]
+    ) -> PageFormatType:
+        """An abstract method to format the page.
+
+        This works similar to the :meth:`PageSource.format_page` except
+        the type of the ``page`` parameter is documented.
+
+        Parameters
+        ------------
+        menu: :class:`Menu`
+            The menu that wants to format this page.
+        page: Union[Any, List[Any]]
+            The page returned by :meth:`get_page`. This is either a single element
+            if :attr:`per_page` is set to ``1`` or a slice of the sequence otherwise.
+
+        Returns
+        ---------
+        Union[:class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`], :class:`dict`]
+            See :meth:`PageSource.format_page`.
+        """
+        raise NotImplementedError
+
 
 KeyType = TypeVar("KeyType")
 
 KeyFuncType = Callable[[DataType], KeyType]
 
 
-class _GroupByEntry(NamedTuple):
+class GroupByEntry(namedtuple("GroupByEntry", "key items")):
+    """Named tuple representing an entry returned by
+    :meth:`GroupByPageSource.get_page` in a :class:`GroupByPageSource`.
+
+    Attributes
+    ------------
+    key: Callable[[Any], Any]
+        A key of the :func:`itertools.groupby` function.
+    items: List[Any]
+        Slice of the paginated items within the group.
+    """
+
+    __slots__ = ()
+
     key: KeyFuncType
-    items: DataType
+    items: List[DataType]
 
 
 class GroupByPageSource(ListPageSource):
@@ -245,7 +281,7 @@ class GroupByPageSource(ListPageSource):
         sort: int = True
     ):
         self.__entries = entries if not sort else sorted(entries, key=key)
-        nested: List[_GroupByEntry] = []
+        nested: List[GroupByEntry] = []
         self.nested_per_page = per_page
         for key_i, group_i in itertools.groupby(self.__entries, key=key):
             group_i = list(group_i)
@@ -255,35 +291,44 @@ class GroupByPageSource(ListPageSource):
 
             # Chunk the nested pages
             nested.extend(
-                _GroupByEntry(key=key_i, items=group_i[i : i + per_page])
+                GroupByEntry(key=key_i, items=group_i[i : i + per_page])
                 for i in range(0, size, per_page)
             )
 
         super().__init__(nested, per_page=1)
 
-    async def get_page(self, page_number: int) -> DataType:
+    async def get_page(self, page_number: int) -> GroupByEntry:
+        """Returns a :class:`GroupByEntry` with ``key``, representing the
+        key of the :func:`itertools.groupby` function, and ``items``,
+        representing a sequence of paginated items within that group.
+
+        Returns
+        ---------
+        GroupByEntry
+            The data returned.
+        """
         return self.entries[page_number]
 
-    async def format_page(self, menu: Menu, entry: _GroupByEntry) -> SendKwargsType:
+    async def format_page(self, menu: Menu, entry: GroupByEntry) -> PageFormatType:
         """An abstract method to format the page.
 
-        This works similar to the :meth:`ListPageSource.format_page` except
-        the return type of the ``entry`` parameter is documented.
+        This works similar to the :meth:`PageSource.format_page` except
+        the type of the ``entry`` parameter is documented.
 
         Parameters
         ------------
         menu: :class:`Menu`
             The menu that wants to format this page.
-        entry
-            A namedtuple with ``(key, items)`` representing the key of the
-            group by function and a sequence of paginated items within that
-            group.
+        entry: GroupByEntry
+            The page returned by :meth:`get_page`. This will be a
+            :class:`GroupByEntry` with ``key``, representing the key of the
+            :func:`itertools.groupby` function, and ``items``, representing
+            a sequence of paginated items within that group.
 
         Returns
         ---------
-        :class:`dict`
-            A dictionary representing keyword-arguments to pass to
-            the message related calls.
+        Union[:class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`], :class:`dict`]
+            See :meth:`PageSource.format_page`.
         """
         raise NotImplementedError
 
@@ -389,3 +434,26 @@ class AsyncIteratorPageSource(PageSource):
             return await self._get_single_page(page_number)
         else:
             return await self._get_page_range(page_number)
+
+    async def format_page(
+        self, menu: Menu, page: Union[DataType, List[DataType]]
+    ) -> PageFormatType:
+        """An abstract method to format the page.
+
+        This works similar to the :meth:`PageSource.format_page` except
+        the type of the ``page`` parameter is documented.
+
+        Parameters
+        ------------
+        menu: :class:`Menu`
+            The menu that wants to format this page.
+        page: Union[Any, List[Any]]
+            The page returned by :meth:`get_page`. This is either a single element
+            if :attr:`per_page` is set to ``1`` or a slice of the sequence otherwise.
+
+        Returns
+        ---------
+        Union[:class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`], :class:`dict`]
+            See :meth:`PageSource.format_page`.
+        """
+        raise NotImplementedError
