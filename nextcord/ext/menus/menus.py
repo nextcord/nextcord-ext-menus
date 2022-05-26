@@ -840,44 +840,82 @@ class ButtonMenu(Menu, nextcord.ui.View):
         self.disable_buttons_after = disable_buttons_after
 
     async def _update_view(self):
+        """|coro|
+
+        Updates the :class:`nextcord.ui.View` of the menu.
+
+        Raises
+        --------
+        AssertionError
+            The message is None.
+        """
+        assert self.message is not None, "No message to update"
         await self.message.edit(view=self)
 
     async def _set_all_disabled(self, disable: bool):
         """|coro|
 
-        Enables or disable all :class:`nextcord.ui.Button` components in the menu.
+        Enables or disable all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
+        it will be edited with the new :class:`~nextcord.ui.View`.
+
+        If no buttons are enabled or disabled, the message will not be edited.
 
         Parameters
         ------------
         disable: :class:`bool`
             Whether to disable or enable the buttons.
         """
+        # if all buttons are already set to `disable` then we don't need to do anything
+        modified = False
+        # disable or enable all buttons
         for child in self.children:
-            if isinstance(child, nextcord.ui.Button):
+            if isinstance(child, nextcord.ui.Button) and child.disabled != disable:
                 child.disabled = disable
-        await self._update_view()
+                modified = True
+        # update the view
+        if modified and self.message is not None:
+            await self._update_view()
 
     async def enable(self):
         """|coro|
 
-        Enables all :class:`nextcord.ui.Button` components in the menu.
+        Enables all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
+        it will be edited with the new :class:`~nextcord.ui.View`.
+
+        If all buttons are already enabled, the message will not be edited.
         """
         await self._set_all_disabled(False)
 
     async def disable(self):
         """|coro|
 
-        Disables all :class:`nextcord.ui.Button` components in the menu.
+        Disables all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
+        it will be edited with the new :class:`~nextcord.ui.View`.
+
+        If all buttons are already disabled, the message will not be edited.
         """
         await self._set_all_disabled(True)
 
     async def clear(self):
         """|coro|
 
-        Removes all :class:`nextcord.ui.Button` components in the menu.
+        Removes all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
+        it will be edited with the new :class:`~nextcord.ui.View`.
+
+        If there are already no items in the view, the message will not be edited.
         """
-        self.clear_items()
-        await self._update_view()
+        # if there are no buttons, then we don't need to do anything
+        modified = False
+        # remove all buttons
+        # copy is required since we are removing during iteration in remove_item
+        # which needs to be called in order to update the view weights
+        for child in self.children.copy():
+            if isinstance(child, nextcord.ui.Button):
+                self.remove_item(child)
+                modified = True
+        # update the view
+        if modified and self.message is not None:
+            await self._update_view()
 
     def stop(self):
         """Stops the internal loop and view interactions."""
