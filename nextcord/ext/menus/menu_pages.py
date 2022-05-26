@@ -79,7 +79,7 @@ class MenuPagesBase(Menu):
         --------
         TypeError
             The return value of :meth:`PageSource.format_page` was not a
-            :class:`str`, :class:`nextcord.Embed`, :class:`List[nextcord.Embed]`,
+            :class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`],
             or :class:`dict`.
         """
         value: PageFormatType = await nextcord.utils.maybe_coroutine(
@@ -342,7 +342,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         --------
         TypeError
             The return value of :meth:`PageSource.format_page` was not a
-            :class:`str`, :class:`nextcord.Embed`, :class:`List[nextcord.Embed]`,
+            :class:`str`, :class:`nextcord.Embed`, List[:class:`nextcord.Embed`],
             or :class:`dict`.
         """
         kwargs = await super()._get_kwargs_from_page(page)

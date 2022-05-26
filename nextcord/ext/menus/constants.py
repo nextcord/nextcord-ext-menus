@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 import nextcord
 
@@ -12,7 +12,7 @@ DEFAULT_TIMEOUT = 180.0
 
 # type definition for the keyword-arguments that are
 # used in both Message.edit and Messageable.send
-SendKwargsType = Dict[str, Union[str, nextcord.Embed, nextcord.ui.View, None]]
+SendKwargsType = Dict[str, Any]
 
 # type definition for possible page formats
 PageFormatType = Union[str, nextcord.Embed, List[nextcord.Embed], SendKwargsType]
