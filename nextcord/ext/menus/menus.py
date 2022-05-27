@@ -855,7 +855,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
     async def _set_all_disabled(self, disable: bool):
         """|coro|
 
-        Enables or disable all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
+        Enables or disables all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
         it will be edited with the new :class:`~nextcord.ui.View`.
 
         If no buttons are enabled or disabled, the message will not be edited.
@@ -902,7 +902,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
         Removes all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
         it will be edited with the new :class:`~nextcord.ui.View`.
 
-        If there are already no items in the view, the message will not be edited.
+        If there are already no buttons in the view, the message will not be edited.
         """
         # if there are no buttons, then we don't need to do anything
         modified = False
