@@ -125,6 +125,9 @@ class MenuPagesBase(Menu):
         kwargs = await self._get_kwargs_from_page(page)
         # filter out kwargs that are "None"
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        # if we're not paginating, we can remove the pagination buttons
+        if not self._source.is_paginating():
+            await self.clear()
         # if there is an interaction, send an interaction response
         if self.interaction is not None:
             message = await self.interaction.send(ephemeral=self.ephemeral, **kwargs)
@@ -149,9 +152,6 @@ class MenuPagesBase(Menu):
             wait=wait,
             ephemeral=ephemeral,
         )
-        # If we're not paginating, we can remove the pagination buttons
-        if not self._source.is_paginating():
-            await self.clear()
 
     async def show_checked_page(self, page_number: int):
         max_pages = self._source.get_max_pages()
