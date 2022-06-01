@@ -14,7 +14,6 @@ Note: for custom emojis to work in reaction menus, the emoji must be in a server
 
 from nextcord.ext import commands, menus
 
-
 bot = commands.Bot(command_prefix="$")
 
 
@@ -34,7 +33,7 @@ class MySource(menus.ListPageSource):
 
     async def format_page(self, menu, entries):
         offset = menu.current_page * self.per_page
-        return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
+        return "\n".join(f"{i}. {v}" for i, v in enumerate(entries, start=offset))
 
 
 @bot.command()
@@ -44,4 +43,4 @@ async def pages(ctx):
     await pages.start(ctx)
 
 
-bot.run('token')
+bot.run("token")

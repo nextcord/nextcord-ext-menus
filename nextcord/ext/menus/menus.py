@@ -1,20 +1,12 @@
 import asyncio
 import inspect
 from collections import OrderedDict
-from typing import (
-    Any,
-    Callable,
-    Coroutine,
-    Mapping,
-    NoReturn,
-    Optional,
-    OrderedDict,
-    Union,
-)
+from typing import Any, Callable, Coroutine, Mapping, NoReturn, Optional, OrderedDict, Union
+
+from nextcord.permissions import Permissions
 
 import nextcord
 from nextcord.ext import commands
-from nextcord.permissions import Permissions
 
 from .constants import DEFAULT_TIMEOUT, EmojiType, log
 from .exceptions import (
@@ -93,9 +85,7 @@ class Button:
         else:
             # Unfurl the method to not be bound
             if not isinstance(menu_self, Menu):
-                raise TypeError(
-                    "skip_if bound method must be from Menu not %r" % menu_self
-                )
+                raise TypeError("skip_if bound method must be from Menu not %r" % menu_self)
 
             self._skip_if = value.__func__
 
@@ -112,9 +102,7 @@ class Button:
         else:
             # Unfurl the method to not be bound
             if not isinstance(menu_self, Menu):
-                raise TypeError(
-                    "action bound method must be from Menu not %r" % menu_self
-                )
+                raise TypeError("action bound method must be from Menu not %r" % menu_self)
 
             value = value.__func__
 
@@ -404,9 +392,7 @@ class Menu(metaclass=_MenuMeta):
 
             return dummy()
 
-    def clear_buttons(
-        self, *, react: bool = False
-    ) -> Union[Coroutine[Any, Any, None], NoReturn]:
+    def clear_buttons(self, *, react: bool = False) -> Union[Coroutine[Any, Any, None], NoReturn]:
         """|maybecoro|
 
         Removes all reaction buttons from the list of buttons.
@@ -514,9 +500,7 @@ class Menu(metaclass=_MenuMeta):
                         self.bot.wait_for("raw_reaction_add", check=self.reaction_check)
                     ),
                     asyncio.ensure_future(
-                        self.bot.wait_for(
-                            "raw_reaction_remove", check=self.reaction_check
-                        )
+                        self.bot.wait_for("raw_reaction_remove", check=self.reaction_check)
                     ),
                 ]
                 done, pending = await asyncio.wait(

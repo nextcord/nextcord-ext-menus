@@ -1,7 +1,6 @@
 from nextcord import Embed
 from nextcord.ext import commands, menus
 
-
 bot = commands.Bot(command_prefix="$")
 
 

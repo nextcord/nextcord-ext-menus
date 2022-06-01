@@ -1,13 +1,13 @@
-from sphinx.util.docutils import SphinxDirective
-from sphinx.locale import _
-from docutils import nodes
-from sphinx import addnodes
-
-from collections import OrderedDict, namedtuple
 import importlib
 import inspect
 import os
 import re
+from collections import OrderedDict, namedtuple
+
+from docutils import nodes
+from sphinx import addnodes
+from sphinx.locale import _
+from sphinx.util.docutils import SphinxDirective
 
 
 class attributetable(nodes.General, nodes.Element):
@@ -185,9 +185,7 @@ def process_attributetable(app, doctree, fromdocname):
         for label, subitems in groups.items():
             if not subitems:
                 continue
-            table.append(
-                class_results_to_node(label, sorted(subitems, key=lambda c: c.label))
-            )
+            table.append(class_results_to_node(label, sorted(subitems, key=lambda c: c.label)))
 
         table["python-class"] = fullname
 
@@ -275,9 +273,7 @@ def class_results_to_node(key, elements):
 
 def setup(app):
     app.add_directive("attributetable", PyAttributeTable)
-    app.add_node(
-        attributetable, html=(visit_attributetable_node, depart_attributetable_node)
-    )
+    app.add_node(attributetable, html=(visit_attributetable_node, depart_attributetable_node))
     app.add_node(
         attributetablecolumn,
         html=(visit_attributetablecolumn_node, depart_attributetablecolumn_node),

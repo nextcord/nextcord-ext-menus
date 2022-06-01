@@ -1,16 +1,7 @@
-from collections import namedtuple
 import inspect
 import itertools
-from typing import (
-    Any,
-    AsyncIterator,
-    Callable,
-    List,
-    Optional,
-    Sequence,
-    TypeVar,
-    Union,
-)
+from collections import namedtuple
+from typing import Any, AsyncIterator, Callable, List, Optional, Sequence, TypeVar, Union
 
 from .constants import PageFormatType
 from .menus import Menu
@@ -273,12 +264,7 @@ class GroupByPageSource(ListPageSource):
     """
 
     def __init__(
-        self,
-        entries: Sequence[DataType],
-        *,
-        key: KeyFuncType,
-        per_page: int,
-        sort: int = True
+        self, entries: Sequence[DataType], *, key: KeyFuncType, per_page: int, sort: int = True
     ):
         self.__entries = entries if not sort else sorted(entries, key=key)
         nested: List[GroupByEntry] = []

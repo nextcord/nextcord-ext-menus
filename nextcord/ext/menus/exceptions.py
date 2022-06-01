@@ -29,6 +29,4 @@ class CannotReadMessageHistory(MenuError):
     """Exception for when the bot is unable to read message history"""
 
     def __init__(self):
-        super().__init__(
-            "Bot does not have Read Message History permissions in this channel."
-        )
+        super().__init__("Bot does not have Read Message History permissions in this channel.")

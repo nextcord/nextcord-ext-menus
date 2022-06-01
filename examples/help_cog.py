@@ -35,7 +35,7 @@ class HelpPageSource(menus.ListPageSource):
         for entry in entries:
             embed.add_field(name=entry[0], value=entry[1], inline=True)
         # set the footer to display the page number
-        embed.set_footer(text=f'Page {menu.current_page + 1}/{self.get_max_pages()}')
+        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
 
 
@@ -86,9 +86,7 @@ class NewHelpCommand(commands.MinimalHelpCommand):
 
         # create a pagination menu that paginates the fields
         pages = HelpButtonMenuPages(
-            ctx=self.context,
-            source=HelpPageSource(self, embed_fields),
-            disable_buttons_after=True
+            ctx=self.context, source=HelpPageSource(self, embed_fields), disable_buttons_after=True
         )
         await pages.start(self.context)
 

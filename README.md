@@ -19,7 +19,7 @@ It is necessary to first install [Nextcord](https://github.com/nextcord/nextcord
 
 Then install the extension by running one of the following commands:
 
-```py 
+```py
 # Linux/macOS
 python3 -m pip install -U nextcord-ext-menus
 

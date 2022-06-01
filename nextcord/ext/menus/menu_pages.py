@@ -54,9 +54,7 @@ class MenuPagesBase(Menu):
         """
 
         if not isinstance(source, PageSource):
-            raise TypeError(
-                "Expected {0!r} not {1.__class__!r}.".format(PageSource, source)
-            )
+            raise TypeError("Expected {0!r} not {1.__class__!r}.".format(PageSource, source))
 
         self._source = source
         self.current_page = 0
@@ -91,9 +89,7 @@ class MenuPagesBase(Menu):
             return {"content": value}
         elif isinstance(value, nextcord.Embed):
             return {"embed": value}
-        elif isinstance(value, list) and all(
-            isinstance(v, nextcord.Embed) for v in value
-        ):
+        elif isinstance(value, list) and all(isinstance(v, nextcord.Embed) for v in value):
             return {"embeds": value}
         raise TypeError(
             "Expected {0!r} not {1.__class__!r}.".format(
@@ -219,9 +215,7 @@ class MenuPages(MenuPagesBase):
                 skip_if=self._skip_double_triangle_buttons,
             ),
         )
-        self.add_button(
-            Button(self.PREVIOUS_PAGE, self.go_to_previous_page, position=First(1))
-        )
+        self.add_button(Button(self.PREVIOUS_PAGE, self.go_to_previous_page, position=First(1)))
         self.add_button(
             Button(self.NEXT_PAGE, self.go_to_next_page, position=Last(0)),
         )

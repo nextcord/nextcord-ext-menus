@@ -1,7 +1,6 @@
+import os
 import re
 import sys
-import os
-
 
 project = "nextcord-ext-menus"
 copyright = "2021 Nextcord. 2020-2021 Danny (Rapptz)"

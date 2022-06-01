@@ -1,5 +1,5 @@
 .. _ext_menus_examples:
-    
+
 .. currentmodule:: nextcord.ext.menus
 
 Menu Examples
@@ -52,7 +52,7 @@ To start the menu, call :meth:`start() <Menu.start>` on the menu, passing
     @bot.command()
     async def menu_example(ctx):
         await MyMenu().start(ctx)
-    
+
     bot.run('token')
 
 Wait for Confirmation
@@ -86,7 +86,7 @@ We do this by using the ``wait=True`` argument to :meth:`start() <Menu.start>`.
         async def prompt(self, ctx):
             await self.start(ctx, wait=True)
             return self.result
-            
+
     @bot.command()
     async def delete_things(ctx):
         confirm = await Confirm('Delete everything?').prompt(ctx)
