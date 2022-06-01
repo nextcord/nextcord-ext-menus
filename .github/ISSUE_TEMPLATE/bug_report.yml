@@ -55,7 +55,7 @@ body:
       label: System Information
       description: >
         Include your version of nextcord-ext-menus (run `pip show nextcord-ext-menus`).
-        Additionally, `python -m nextcord -v` and paste this information below.
+        Additionally, run `python -m nextcord -v` and paste this information below.
         This command required v1.1.0 or higher of the library. If this errors out then show some basic
         information involving your system such as operating system and Python version.
     validations:
