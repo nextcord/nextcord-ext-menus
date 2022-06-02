@@ -290,14 +290,14 @@ class Menu(metaclass=_MenuMeta):
         self._event = asyncio.Event()
 
     @nextcord.utils.cached_property
-    def buttons(self) -> Mapping[str, Button]:
+    def buttons(self) -> Mapping[nextcord.PartialEmoji, Button]:
         """Retrieves the reaction buttons that are to be used for this menu session.
 
         Skipped buttons are not in the resulting dictionary.
 
         Returns
         ---------
-        Mapping[:class:`str`, :class:`Button`]
+        Mapping[:class:`PartialEmoji`, :class:`Button`]
             A mapping of button emoji to the actual button class.
         """
         key: Callable[[Button], Position] = lambda button: button.position
@@ -585,7 +585,7 @@ class Menu(metaclass=_MenuMeta):
         payload: :class:`nextcord.RawReactionActionEvent`
             The reaction event that triggered this update.
         """
-        button = self.buttons[str(payload.emoji)]
+        button = self.buttons[payload.emoji]
         if not self._running:
             return
 
