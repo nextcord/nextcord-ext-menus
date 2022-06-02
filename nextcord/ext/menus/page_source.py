@@ -1,7 +1,17 @@
 import inspect
 import itertools
-from collections import namedtuple
-from typing import Any, AsyncIterator, Callable, List, Optional, Sequence, TypeVar, Union
+from typing import (
+    Any,
+    AsyncIterator,
+    Callable,
+    Generic,
+    List,
+    NamedTuple,
+    Optional,
+    Sequence,
+    TypeVar,
+    Union,
+)
 
 from .constants import PageFormatType
 from .menus import Menu
@@ -138,7 +148,7 @@ class PageSource:
         raise NotImplementedError
 
 
-class ListPageSource(PageSource):
+class ListPageSource(PageSource, Generic[DataType]):
     """A data source for a sequence of items.
 
     This page source does not handle any sort of formatting, leaving it up
@@ -170,7 +180,7 @@ class ListPageSource(PageSource):
         """:class:`int`: The maximum number of pages required to paginate this sequence."""
         return self._max_pages
 
-    async def get_page(self, page_number: int) -> Union[DataType, List[DataType]]:
+    async def get_page(self, page_number: int) -> Union[DataType, Sequence[DataType]]:
         """Returns either a single element of the sequence or
         a slice of the sequence.
 
@@ -217,7 +227,7 @@ KeyType = TypeVar("KeyType")
 KeyFuncType = Callable[[DataType], KeyType]
 
 
-class GroupByEntry(namedtuple("GroupByEntry", "key items")):
+class GroupByEntry(NamedTuple, Generic[DataType]):
     """Named tuple representing an entry returned by
     :meth:`GroupByPageSource.get_page` in a :class:`GroupByPageSource`.
 
@@ -235,7 +245,7 @@ class GroupByEntry(namedtuple("GroupByEntry", "key items")):
     items: List[DataType]
 
 
-class GroupByPageSource(ListPageSource):
+class GroupByPageSource(ListPageSource, Generic[DataType]):
     """A data source for grouped by sequence of items.
 
     This inherits from :class:`ListPageSource`.
@@ -283,7 +293,7 @@ class GroupByPageSource(ListPageSource):
 
         super().__init__(nested, per_page=1)
 
-    async def get_page(self, page_number: int) -> GroupByEntry:
+    async def get_page(self, page_number: int) -> GroupByEntry[DataType]:
         """Returns a :class:`GroupByEntry` with ``key``, representing the
         key of the :func:`itertools.groupby` function, and ``items``,
         representing a sequence of paginated items within that group.
@@ -332,7 +342,7 @@ def _aiter(obj, *, _isasync=inspect.iscoroutinefunction):
     return async_iter
 
 
-class AsyncIteratorPageSource(PageSource):
+class AsyncIteratorPageSource(PageSource, Generic[DataType]):
     """A data source for data backed by an asynchronous iterator.
 
     This page source does not handle any sort of formatting, leaving it up
