@@ -70,7 +70,7 @@ class Button:
         emoji: EmojiType,
         action: Callable[..., Coroutine[Any, Any, Any]],
         *,
-        skip_if: Optional[Callable[["Menu"], bool]] = None,
+        skip_if: Optional[Callable[..., bool]] = None,
         position: Optional[Position] = None,
         lock: Optional[bool] = True,
     ):
@@ -82,13 +82,13 @@ class Button:
         self.lock = lock
 
     @property
-    def skip_if(self) -> Optional[Callable[["Menu"], bool]]:
+    def skip_if(self) -> Optional[Callable[..., bool]]:
         return self._skip_if
 
     @skip_if.setter
-    def skip_if(self, value: Optional[Callable[["Menu"], bool]]):
+    def skip_if(self, value: Optional[Callable[..., bool]]):
         if value is None:
-            self._skip_if: Callable[["Menu"], bool] = lambda _: False
+            self._skip_if: Callable[..., bool] = lambda _: False
             return
 
         try:

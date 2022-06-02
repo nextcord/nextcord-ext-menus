@@ -164,7 +164,7 @@ class MenuPagesBase(Menu):
         if self._source.is_paginating():
             await self.show_page(self.current_page)
 
-    def _skip_double_triangle_buttons(self, _: Menu) -> bool:
+    def _skip_double_triangle_buttons(self) -> bool:
         max_pages = self._source.get_max_pages()
         if max_pages is None:
             return True
@@ -309,7 +309,7 @@ class ButtonMenuPages(MenuPagesBase, ButtonMenu):
         )
         double_triangle_emojis = {self.FIRST_PAGE, self.LAST_PAGE}
         for emoji in pagination_emojis:
-            if emoji in double_triangle_emojis and self._skip_double_triangle_buttons(self):
+            if emoji in double_triangle_emojis and self._skip_double_triangle_buttons():
                 continue
             self.add_item(MenuPaginationButton(emoji=emoji, style=style))
         # disable buttons that are not available
