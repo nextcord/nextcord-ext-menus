@@ -189,7 +189,7 @@ class ListPageSource(PageSource, Generic[DataType]):
 
         Returns
         ---------
-        Union[Any, List[Any]]
+        Union[Any, Sequence[Any]]
             The data returned.
         """
         if self.per_page == 1:
