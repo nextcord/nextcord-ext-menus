@@ -291,7 +291,7 @@ class GroupByPageSource(ListPageSource, Generic[DataType]):
 
         super().__init__(nested, per_page=1)
 
-    async def get_page(self, page_number: int) -> GroupByEntry[DataType]:
+    async def get_page(self, page_number: int) -> GroupByEntry:
         """Returns a :class:`GroupByEntry` with ``key``, representing the
         key of the :func:`itertools.groupby` function, and ``items``,
         representing a sequence of paginated items within that group.
