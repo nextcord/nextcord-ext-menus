@@ -227,7 +227,7 @@ KeyType = TypeVar("KeyType")
 KeyFuncType = Callable[[DataType], KeyType]
 
 
-class GroupByEntry(NamedTuple, Generic[DataType]):
+class GroupByEntry(NamedTuple):
     """Named tuple representing an entry returned by
     :meth:`GroupByPageSource.get_page` in a :class:`GroupByPageSource`.
 
@@ -239,10 +239,8 @@ class GroupByEntry(NamedTuple, Generic[DataType]):
         Slice of the paginated items within the group.
     """
 
-    __slots__ = ()
-
     key: KeyFuncType
-    items: List[DataType]
+    items: List[Any]
 
 
 class GroupByPageSource(ListPageSource, Generic[DataType]):
