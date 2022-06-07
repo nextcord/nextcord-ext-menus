@@ -1,13 +1,14 @@
-from sphinx.util.docutils import SphinxDirective
-from sphinx.locale import _
-from docutils import nodes
-from sphinx import addnodes
-
-from collections import OrderedDict, namedtuple
+import asyncio
 import importlib
 import inspect
-import os
 import re
+from collections import OrderedDict
+from typing import Callable, NamedTuple, Optional
+
+from docutils import nodes
+from sphinx import addnodes
+from sphinx.locale import _
+from sphinx.util.docutils import SphinxDirective
 
 
 class attributetable(nodes.General, nodes.Element):
@@ -90,7 +91,11 @@ class PyAttributeTable(SphinxDirective):
     option_spec = {}
 
     def parse_name(self, content):
-        path, name = _name_parser_regex.match(content).groups()
+        match = _name_parser_regex.match(content)
+        if match is None:
+            raise RuntimeError("could not find module name somehow")
+
+        path, name = match.groups()
         if path:
             modulename = path.rstrip(".")
         else:
@@ -154,7 +159,7 @@ def build_lookup_table(env):
         "class",
     }
 
-    for (fullname, _, objtype, docname, _, _) in domain.get_objects():
+    for (fullname, _, objtype, _, _, _) in domain.get_objects():
         if objtype in ignored:
             continue
 
@@ -167,7 +172,10 @@ def build_lookup_table(env):
     return result
 
 
-TableElement = namedtuple("TableElement", "fullname label badge")
+class TableElement(NamedTuple):
+    fullname: str
+    label: str
+    badge: Optional[attributetablebadge]
 
 
 def process_attributetable(app, doctree, fromdocname):
@@ -185,9 +193,9 @@ def process_attributetable(app, doctree, fromdocname):
         for label, subitems in groups.items():
             if not subitems:
                 continue
-            table.append(
-                class_results_to_node(label, sorted(subitems, key=lambda c: c.label))
-            )
+
+            key: Callable[[TableElement], str] = lambda c: c.label
+            table.append(class_results_to_node(label, sorted(subitems, key=key)))
 
         table["python-class"] = fullname
 
@@ -227,7 +235,7 @@ def get_class_results(lookup, modulename, name, fullname):
 
         if value is not None:
             doc = value.__doc__ or ""
-            if inspect.iscoroutinefunction(value) or doc.startswith("|coro|"):
+            if asyncio.iscoroutinefunction(value) or doc.startswith("|coro|"):
                 key = _("Methods")
                 badge = attributetablebadge("async", "async")
                 badge["badge-type"] = _("coroutine")
@@ -275,24 +283,19 @@ def class_results_to_node(key, elements):
 
 def setup(app):
     app.add_directive("attributetable", PyAttributeTable)
-    app.add_node(
-        attributetable, html=(visit_attributetable_node, depart_attributetable_node)
-    )
+    app.add_node(attributetable, html=(visit_attributetable_node, depart_attributetable_node))
     app.add_node(
         attributetablecolumn,
         html=(visit_attributetablecolumn_node, depart_attributetablecolumn_node),
     )
     app.add_node(
-        attributetabletitle,
-        html=(visit_attributetabletitle_node, depart_attributetabletitle_node),
+        attributetabletitle, html=(visit_attributetabletitle_node, depart_attributetabletitle_node)
     )
     app.add_node(
-        attributetablebadge,
-        html=(visit_attributetablebadge_node, depart_attributetablebadge_node),
+        attributetablebadge, html=(visit_attributetablebadge_node, depart_attributetablebadge_node)
     )
     app.add_node(
-        attributetable_item,
-        html=(visit_attributetable_item_node, depart_attributetable_item_node),
+        attributetable_item, html=(visit_attributetable_item_node, depart_attributetable_item_node)
     )
     app.add_node(attributetableplaceholder)
     app.connect("doctree-resolved", process_attributetable)

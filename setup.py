@@ -1,12 +1,15 @@
 import os
-from setuptools import setup
 import re
+
+from setuptools import setup
 
 version = ""
 with open("nextcord/ext/menus/__init__.py") as f:
-    version = re.search(
-        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
-    ).group(1)
+    match = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE)
+    if match is None or match.group(1) is None:
+        raise RuntimeError("version is not set")
+
+    version = match.group(1)
 
 if not version:
     raise RuntimeError("version is not set")

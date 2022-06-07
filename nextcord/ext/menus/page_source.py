@@ -1,11 +1,12 @@
-from collections import namedtuple
 import inspect
 import itertools
 from typing import (
     Any,
     AsyncIterator,
     Callable,
+    Generic,
     List,
+    NamedTuple,
     Optional,
     Sequence,
     TypeVar,
@@ -147,7 +148,7 @@ class PageSource:
         raise NotImplementedError
 
 
-class ListPageSource(PageSource):
+class ListPageSource(PageSource, Generic[DataType]):
     """A data source for a sequence of items.
 
     This page source does not handle any sort of formatting, leaving it up
@@ -179,7 +180,7 @@ class ListPageSource(PageSource):
         """:class:`int`: The maximum number of pages required to paginate this sequence."""
         return self._max_pages
 
-    async def get_page(self, page_number: int) -> Union[DataType, List[DataType]]:
+    async def get_page(self, page_number: int) -> Union[DataType, Sequence[DataType]]:
         """Returns either a single element of the sequence or
         a slice of the sequence.
 
@@ -188,7 +189,7 @@ class ListPageSource(PageSource):
 
         Returns
         ---------
-        Union[Any, List[Any]]
+        Union[Any, Sequence[Any]]
             The data returned.
         """
         if self.per_page == 1:
@@ -226,7 +227,7 @@ KeyType = TypeVar("KeyType")
 KeyFuncType = Callable[[DataType], KeyType]
 
 
-class GroupByEntry(namedtuple("GroupByEntry", "key items")):
+class GroupByEntry(NamedTuple):
     """Named tuple representing an entry returned by
     :meth:`GroupByPageSource.get_page` in a :class:`GroupByPageSource`.
 
@@ -238,13 +239,11 @@ class GroupByEntry(namedtuple("GroupByEntry", "key items")):
         Slice of the paginated items within the group.
     """
 
-    __slots__ = ()
-
     key: KeyFuncType
-    items: List[DataType]
+    items: List[Any]
 
 
-class GroupByPageSource(ListPageSource):
+class GroupByPageSource(ListPageSource, Generic[DataType]):
     """A data source for grouped by sequence of items.
 
     This inherits from :class:`ListPageSource`.
@@ -273,12 +272,7 @@ class GroupByPageSource(ListPageSource):
     """
 
     def __init__(
-        self,
-        entries: Sequence[DataType],
-        *,
-        key: KeyFuncType,
-        per_page: int,
-        sort: int = True
+        self, entries: Sequence[DataType], *, key: KeyFuncType, per_page: int, sort: int = True
     ):
         self.__entries = entries if not sort else sorted(entries, key=key)
         nested: List[GroupByEntry] = []
@@ -346,7 +340,7 @@ def _aiter(obj, *, _isasync=inspect.iscoroutinefunction):
     return async_iter
 
 
-class AsyncIteratorPageSource(PageSource):
+class AsyncIteratorPageSource(PageSource, Generic[DataType]):
     """A data source for data backed by an asynchronous iterator.
 
     This page source does not handle any sort of formatting, leaving it up

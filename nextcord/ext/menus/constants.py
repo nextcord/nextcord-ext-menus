@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Union
 
 import nextcord
 
-
 # consistency with the `nextcord` namespaced logging
 log = logging.getLogger(__name__)
 

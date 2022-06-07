@@ -1,7 +1,6 @@
+import os
 import re
 import sys
-import os
-
 
 project = "nextcord-ext-menus"
 copyright = "2021 Nextcord. 2020-2021 Danny (Rapptz)"
@@ -14,6 +13,8 @@ _version_regex = r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]'
 
 with open("../nextcord/ext/menus/__init__.py") as stream:
     match = re.search(_version_regex, stream.read(), re.MULTILINE)
+    if match is None or match.group(1) is None:
+        raise RuntimeError("version is not set")
 
 version = match.group(1)
 

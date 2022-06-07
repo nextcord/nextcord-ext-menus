@@ -9,8 +9,8 @@ Here are few examples of pagination with ``nextcord-ext-menus``.
 
 The built-in pagination classes (:class:`MenuPages` and :class:`ButtonMenuPages`)
 handle splitting data into pages, sending the initial message, timeout actions, and button actions for
-:meth:`first page <MenuPages.go_to_first_page>`, :meth:`previous page <MenuPages.go_to_previous_page>`, 
-:meth:`next page <MenuPages.go_to_next_page>`, :meth:`last page <MenuPages.go_to_last_page>`, 
+:meth:`first page <MenuPages.go_to_first_page>`, :meth:`previous page <MenuPages.go_to_previous_page>`,
+:meth:`next page <MenuPages.go_to_next_page>`, :meth:`last page <MenuPages.go_to_last_page>`,
 and :meth:`stop <MenuPages.stop_pages>` all for you.
 
 The examples below are for button pagination. If you want to use reaction menus, you can simply
@@ -34,7 +34,7 @@ All that is left is instantiating and starting the menu.
 We will use the basic pagination class :class:`ButtonMenuPages` to handle the pagination
 and pass it the page source which holds our list of entries as the ``source`` parameter.
 We can optionally pass additional parameters such as the button style and any parameters
-supported by :class:`ButtonMenu`. Then we can start the menu by calling 
+supported by :class:`ButtonMenu`. Then we can start the menu by calling
 :meth:`pages.start() <ButtonMenuPages.start>`.
 
 .. code:: py
@@ -60,7 +60,7 @@ supported by :class:`ButtonMenu`. Then we can start the menu by calling
             delete_message_after=True,
         )
         await pages.start(ctx)
-    
+
     bot.run('token')
 
 Paginated Embeds Using Fields
@@ -205,18 +205,18 @@ In the example below, we will remove the stop button by adding only the other fo
         This class overrides the default ButtonMenuPages without inheriting the buttons
         by setting inherit_buttons to False.
 
-        This allows us to add our own buttons with custom labels, styles, or even callbacks. 
+        This allows us to add our own buttons with custom labels, styles, or even callbacks.
         """
 
         def __init__(self, source, timeout=60):
             super().__init__(source, timeout=timeout)
-            
+
             # Add the buttons we want
             self.add_item(menus.MenuPaginationButton(emoji=self.FIRST_PAGE))
             self.add_item(menus.MenuPaginationButton(emoji=self.PREVIOUS_PAGE))
             self.add_item(menus.MenuPaginationButton(emoji=self.NEXT_PAGE))
             self.add_item(menus.MenuPaginationButton(emoji=self.LAST_PAGE))
-            
+
             # Disable buttons that are unavailable to be pressed at the start
             self._disable_unavailable_buttons()
 
@@ -295,7 +295,7 @@ Instead of a list of data, you pass a generator that yields entries as they are 
     @bot.command()
     async def async_iterator_page_source_example(ctx):
         pages = menus.ButtonMenuPages(source=Source())
-        await pages.start(ctx)     
+        await pages.start(ctx)
 
 Pagination + Select Menus
 -------------------------

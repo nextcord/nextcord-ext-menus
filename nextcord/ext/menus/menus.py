@@ -2,6 +2,7 @@ import asyncio
 import inspect
 from collections import OrderedDict
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Coroutine,
@@ -12,9 +13,10 @@ from typing import (
     Union,
 )
 
+from nextcord.permissions import Permissions
+
 import nextcord
 from nextcord.ext import commands
-from nextcord.permissions import Permissions
 
 from .constants import DEFAULT_TIMEOUT, EmojiType, log
 from .exceptions import (
@@ -39,10 +41,10 @@ class Button:
 
     Attributes
     ------------
-    emoji: :class:`nextcord.PartialEmoji`
+    emoji: :class:`~nextcord.PartialEmoji`
         The emoji to use as the button. Note that passing a string will
-        transform it into a :class:`nextcord.PartialEmoji`.
-    action
+        transform it into a :class:`~nextcord.PartialEmoji`.
+    action: Callable[..., Coroutine[Any, Any, Any]]
         A coroutine that is called when the button is pressed.
     skip_if: Optional[Callable[[:class:`Menu`], :class:`bool`]]
         A callable that detects whether it should be skipped.
@@ -60,12 +62,15 @@ class Button:
 
     __slots__ = ("emoji", "_action", "_skip_if", "position", "lock")
 
+    if TYPE_CHECKING:
+        emoji: nextcord.PartialEmoji
+
     def __init__(
         self,
-        emoji: nextcord.PartialEmoji,
-        action: Coroutine,
+        emoji: EmojiType,
+        action: Callable[..., Coroutine[Any, Any, Any]],
         *,
-        skip_if: Optional[Callable[["Menu"], bool]] = None,
+        skip_if: Optional[Callable[..., bool]] = None,
         position: Optional[Position] = None,
         lock: Optional[bool] = True,
     ):
@@ -77,13 +82,13 @@ class Button:
         self.lock = lock
 
     @property
-    def skip_if(self) -> Optional[Callable[["Menu"], bool]]:
+    def skip_if(self) -> Optional[Callable[..., bool]]:
         return self._skip_if
 
     @skip_if.setter
-    def skip_if(self, value: Optional[Callable[["Menu"], bool]]):
+    def skip_if(self, value: Optional[Callable[..., bool]]):
         if value is None:
-            self._skip_if = lambda _: False
+            self._skip_if: Callable[..., bool] = lambda _: False
             return
 
         try:
@@ -93,18 +98,16 @@ class Button:
         else:
             # Unfurl the method to not be bound
             if not isinstance(menu_self, Menu):
-                raise TypeError(
-                    "skip_if bound method must be from Menu not %r" % menu_self
-                )
+                raise TypeError("skip_if bound method must be from Menu not %r" % menu_self)
 
             self._skip_if = value.__func__
 
     @property
-    def action(self) -> Coroutine:
+    def action(self) -> Callable[..., Coroutine[Any, Any, Any]]:
         return self._action
 
     @action.setter
-    def action(self, value: Coroutine):
+    def action(self, value: Callable[..., Coroutine[Any, Any, Any]]):
         try:
             menu_self = value.__self__
         except AttributeError:
@@ -112,9 +115,7 @@ class Button:
         else:
             # Unfurl the method to not be bound
             if not isinstance(menu_self, Menu):
-                raise TypeError(
-                    "action bound method must be from Menu not %r" % menu_self
-                )
+                raise TypeError("action bound method must be from Menu not %r" % menu_self)
 
             value = value.__func__
 
@@ -124,15 +125,19 @@ class Button:
         self._action = value
 
     def __call__(self, menu: "Menu", payload: nextcord.RawReactionActionEvent):
-        if self.skip_if(menu):
-            return
+        if self.skip_if is not None and self.skip_if(menu):
+
+            async def dummy():
+                ...
+
+            return dummy()
         return self._action(menu, payload)
 
     def __str__(self) -> str:
         return str(self.emoji)
 
     def is_valid(self, menu) -> bool:
-        return not self.skip_if(menu)
+        return self.skip_if is None or not self.skip_if(menu)
 
 
 def button(emoji: EmojiType, **kwargs):
@@ -162,7 +167,7 @@ def button(emoji: EmojiType, **kwargs):
 
     Parameters
     ------------
-    emoji: Union[:class:`str`, :class:`nextcord.PartialEmoji`]
+    emoji: Union[:class:`str`, :class:`~nextcord.PartialEmoji`]
         The emoji to use for the button.
     """
 
@@ -190,7 +195,7 @@ class _MenuMeta(type):
         if inherit_buttons:
             # walk MRO to get all buttons even in subclasses
             for base in reversed(new_cls.__mro__):
-                for elem, value in base.__dict__.items():
+                for _, value in base.__dict__.items():
                     try:
                         value.__menu_button__
                     except AttributeError:
@@ -198,7 +203,7 @@ class _MenuMeta(type):
                     else:
                         buttons.append(value)
         else:
-            for elem, value in attrs.items():
+            for _, value in attrs.items():
                 try:
                     value.__menu_button__
                 except AttributeError:
@@ -206,13 +211,13 @@ class _MenuMeta(type):
                 else:
                     buttons.append(value)
 
-        new_cls.__inherit_buttons__ = inherit_buttons
-        new_cls.__menu_buttons__ = buttons
+        new_cls.__inherit_buttons__ = inherit_buttons  # type: ignore
+        new_cls.__menu_buttons__ = buttons  # type: ignore
         return new_cls
 
     def get_buttons(cls) -> OrderedDict:
         buttons = OrderedDict()
-        for func in cls.__menu_buttons__:
+        for func in cls.__menu_buttons__:  # type: ignore
             emoji = func.__menu_button__
             buttons[emoji] = Button(emoji, func, **func.__menu_button_kwargs__)
         return buttons
@@ -285,17 +290,18 @@ class Menu(metaclass=_MenuMeta):
         self._event = asyncio.Event()
 
     @nextcord.utils.cached_property
-    def buttons(self) -> Mapping[str, Button]:
+    def buttons(self) -> Mapping[nextcord.PartialEmoji, Button]:
         """Retrieves the reaction buttons that are to be used for this menu session.
 
         Skipped buttons are not in the resulting dictionary.
 
         Returns
         ---------
-        Mapping[:class:`str`, :class:`Button`]
+        Mapping[:class:`PartialEmoji`, :class:`Button`]
             A mapping of button emoji to the actual button class.
         """
-        buttons = sorted(self._buttons.values(), key=lambda b: b.position)
+        key: Callable[[Button], Position] = lambda button: button.position
+        buttons = sorted(self._buttons.values(), key=key)
         return {button.emoji: button for button in buttons if button.is_valid(self)}
 
     def add_button(self, button: Button, *, react: bool = False):
@@ -339,14 +345,11 @@ class Menu(metaclass=_MenuMeta):
             if self.__tasks:
 
                 async def wrapped():
+                    assert self.message is not None
                     # Add the reaction
-                    try:
-                        await self.message.add_reaction(button.emoji)
-                    except nextcord.HTTPException:
-                        raise
-                    else:
-                        # Update the cache to have the value
-                        self.buttons[button.emoji] = button
+                    await self.message.add_reaction(button.emoji)
+                    # Update the cache to have the value
+                    self._buttons[button.emoji] = button
 
                 return wrapped()
 
@@ -356,8 +359,8 @@ class Menu(metaclass=_MenuMeta):
             return dummy()
 
     def remove_button(
-        self, emoji: Union[Button, str], *, react: bool = False
-    ) -> Union[Coroutine[Any, Any, None], NoReturn]:
+        self, emoji: Union[Button, EmojiType], *, react: bool = False
+    ) -> Optional[Coroutine[Any, Any, Optional[NoReturn]]]:
         """|maybecoro|
 
         Removes a reaction button from the list of buttons.
@@ -366,7 +369,7 @@ class Menu(metaclass=_MenuMeta):
 
         Parameters
         ------------
-        emoji: Union[:class:`Button`, :class:`str`]
+        emoji: Union[:class:`Button`, :class:`str`, :class:`~nextcord.Emoji`, :class:`~nextcord.PartialEmoji`]
             The emoji or the button to remove.
         react: :class:`bool`
             Whether to remove the reaction if the menu has been started.
@@ -391,10 +394,11 @@ class Menu(metaclass=_MenuMeta):
             if self.__tasks:
 
                 async def wrapped():
+                    assert self.message is not None
                     # Remove the reaction from being processable
                     # Removing it from the cache first makes it so the check
                     # doesn't get triggered.
-                    self.buttons.pop(emoji, None)
+                    self._buttons.pop(emoji, None)
                     await self.message.remove_reaction(emoji, self.__me)
 
                 return wrapped()
@@ -406,7 +410,7 @@ class Menu(metaclass=_MenuMeta):
 
     def clear_buttons(
         self, *, react: bool = False
-    ) -> Union[Coroutine[Any, Any, None], NoReturn]:
+    ) -> Union[Coroutine[Any, Any, None], Callable[..., Coroutine[Any, Any, None]], None]:
         """|maybecoro|
 
         Removes all reaction buttons from the list of buttons.
@@ -447,7 +451,7 @@ class Menu(metaclass=_MenuMeta):
 
     def should_add_buttons(self) -> bool:
         """:class:`bool`: Whether to add button components to this menu session."""
-        return hasattr(self, "children") and len(self.children) > 0
+        return isinstance(self, ButtonMenu) and len(self.children) > 0
 
     def should_add_reactions_or_buttons(self) -> bool:
         """:class:`bool`: Whether to add reactions or buttons to this menu session."""
@@ -455,8 +459,8 @@ class Menu(metaclass=_MenuMeta):
 
     def _verify_permissions(
         self,
-        ctx: commands.Context,
-        channel: nextcord.abc.Messageable,
+        ctx: Optional[commands.Context],
+        channel: Optional[nextcord.abc.Messageable],
         permissions: Permissions,
     ):
         is_thread = isinstance(channel, nextcord.Thread)
@@ -491,32 +495,33 @@ class Menu(metaclass=_MenuMeta):
         :class:`bool`
             Whether the payload should be processed.
         """
+        if self.message is None:
+            return False
         if payload.message_id != self.message.id:
             return False
         if payload.user_id not in {
-            self.bot.owner_id,
+            getattr(self.bot, "owner_id", None),
             self._author_id,
-            *self.bot.owner_ids,
+            *getattr(self.bot, "owner_ids", ()),
         }:
             return False
 
         return payload.emoji in self.buttons
 
     async def _internal_loop(self):
+        assert self.bot is not None
+        tasks = []
         try:
             self.__timed_out = False
             loop = self.bot.loop
             # Ensure the name exists for the cancellation handling
-            tasks = []
             while self._running:
                 tasks = [
                     asyncio.ensure_future(
                         self.bot.wait_for("raw_reaction_add", check=self.reaction_check)
                     ),
                     asyncio.ensure_future(
-                        self.bot.wait_for(
-                            "raw_reaction_remove", check=self.reaction_check
-                        )
+                        self.bot.wait_for("raw_reaction_remove", check=self.reaction_check)
                     ),
                 ]
                 done, pending = await asyncio.wait(
@@ -560,14 +565,14 @@ class Menu(metaclass=_MenuMeta):
                 self.__timed_out = False
 
             # Can't do any requests if the bot is closed
-            if self.bot.is_closed():
+            if self.bot and self.bot.is_closed():
                 return
 
-            if self.delete_message_after:
+            if self.message and self.delete_message_after:
                 await self.message.delete()
             elif getattr(self, "clear_buttons_after", self.clear_reactions_after):
                 await self.clear()
-            elif getattr(self, "disable_buttons_after", None):
+            elif isinstance(self, ButtonMenu) and getattr(self, "disable_buttons_after", None):
                 await self.disable()
 
     async def update(self, payload: nextcord.RawReactionActionEvent):
@@ -663,8 +668,6 @@ class Menu(metaclass=_MenuMeta):
             pass
 
         # ensure only one of ctx and interaction is set
-        if ctx is None and interaction is None:
-            raise ValueError("ctx or interaction must be set.")
         if ctx is not None and interaction is not None:
             raise ValueError("ctx and interaction cannot both be set.")
 
@@ -675,12 +678,14 @@ class Menu(metaclass=_MenuMeta):
             self.bot = ctx.bot
             self._author_id = ctx.author.id
             channel = channel or ctx.channel
-        else:
+        elif interaction is not None:
             self.bot = getattr(interaction, "client", interaction._state._get_client())
-            self._author_id = interaction.user.id
-            channel = channel or interaction.channel
-        me = channel.guild.me if hasattr(channel, "guild") else self.bot.user
-        permissions = channel.permissions_for(me)
+            self._author_id = interaction.user.id  # type: ignore
+            channel = channel or interaction.channel  # type: ignore
+        else:
+            raise ValueError("ctx or interaction must be set.")
+        me: Union[Member, ClientUser] = channel.guild.me if hasattr(channel, "guild") else self.bot.user  # type: ignore
+        permissions = channel.permissions_for(me)  # type: ignore
         self.__me = nextcord.Object(id=me.id)
         self._verify_permissions(ctx, channel, permissions)
         self._event.clear()
@@ -721,7 +726,7 @@ class Menu(metaclass=_MenuMeta):
         pass
 
     async def send_initial_message(
-        self, ctx: commands.Context, channel: nextcord.abc.Messageable
+        self, ctx: Optional[commands.Context], channel: Optional[nextcord.abc.Messageable]
     ) -> nextcord.Message:
         """|coro|
 
@@ -762,6 +767,7 @@ class Menu(metaclass=_MenuMeta):
                 except AttributeError:
                     pass
                 finally:
+                    assert self.message is not None, "Cannot remove reactions without a message."
                     await self.message.clear_reactions()
                 return
 
@@ -774,6 +780,7 @@ class Menu(metaclass=_MenuMeta):
 
             for reaction in reactions:
                 try:
+                    assert self.message is not None, "Cannot remove reactions without a message."
                     await self.message.remove_reaction(reaction, self.__me)
                 except nextcord.HTTPException:
                     continue
@@ -841,9 +848,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
 
     async def _update_view(self):
         """|coro|
-
         Updates the :class:`nextcord.ui.View` of the menu.
-
         Raises
         --------
         AssertionError
@@ -854,12 +859,9 @@ class ButtonMenu(Menu, nextcord.ui.View):
 
     async def _set_all_disabled(self, disable: bool):
         """|coro|
-
         Enables or disables all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
         it will be edited with the new :class:`~nextcord.ui.View`.
-
         If no buttons are enabled or disabled, the message will not be edited.
-
         Parameters
         ------------
         disable: :class:`bool`
@@ -878,30 +880,24 @@ class ButtonMenu(Menu, nextcord.ui.View):
 
     async def enable(self):
         """|coro|
-
         Enables all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
         it will be edited with the new :class:`~nextcord.ui.View`.
-
         If all buttons are already enabled, the message will not be edited.
         """
         await self._set_all_disabled(False)
 
     async def disable(self):
         """|coro|
-
         Disables all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
         it will be edited with the new :class:`~nextcord.ui.View`.
-
         If all buttons are already disabled, the message will not be edited.
         """
         await self._set_all_disabled(True)
 
     async def clear(self):
         """|coro|
-
         Removes all :class:`nextcord.ui.Button` components in the menu. If the :attr:`message` is set,
         it will be edited with the new :class:`~nextcord.ui.View`.
-
         If there are already no buttons in the view, the message will not be edited.
         """
         # if there are no buttons, then we don't need to do anything

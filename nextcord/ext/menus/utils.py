@@ -1,8 +1,9 @@
-from typing import Pattern
-from .constants import EmojiType
 import re
+from typing import Pattern
 
 import nextcord
+
+from .constants import EmojiType
 
 
 class Position:
@@ -95,9 +96,7 @@ class Last(Position):
         super().__init__(number, bucket=2)
 
 
-_custom_emoji = re.compile(
-    r"<?(?P<animated>a)?:?(?P<name>[A-Za-z0-9\_]+):(?P<id>[0-9]{13,20})>?"
-)
+_custom_emoji = re.compile(r"<?(?P<animated>a)?:?(?P<name>[A-Za-z0-9\_]+):(?P<id>[0-9]{13,20})>?")
 
 
 def _cast_emoji(obj: EmojiType, *, _custom_emoji: Pattern[str] = _custom_emoji):
