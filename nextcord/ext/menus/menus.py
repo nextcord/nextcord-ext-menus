@@ -256,7 +256,8 @@ class Menu(metaclass=_MenuMeta):
         The message that has been sent for handling the menu. This is the returned
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
-        message you want to attach a menu to.
+        message you want to attach a menu to. When using reaction buttons, the
+        message must be an instance of a :class:`nextcord.Message`.
     ephemeral: :class:`bool`
         Whether to make the response ephemeral when using an interaction response.
         Note: Ephemeral messages do not support reactions.
@@ -740,6 +741,11 @@ class Menu(metaclass=_MenuMeta):
         Sends the initial message for the menu session.
 
         This is internally assigned to the :attr:`message` attribute.
+
+        A :class:`~nextcord.Message` or a
+        :class:`~nextcord.PartialInteractionMessage` object must be
+        returned. When using reaction buttons, the message must be
+        an instance of a :class:`nextcord.Message`.
 
         Subclasses must implement this if they don't set the
         :attr:`message` attribute themselves before starting the
