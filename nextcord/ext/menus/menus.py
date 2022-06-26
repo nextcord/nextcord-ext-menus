@@ -831,7 +831,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
     bot: Optional[:class:`commands.Bot`]
         The bot that is running this pagination session or ``None`` if it hasn't
         been started yet.
-    message: Optional[:class:`nextcord.Message`, :class:`nextcord.PartialInteractionMessage`]
+    message: Optional[Union[:class:`nextcord.Message`, :class:`nextcord.PartialInteractionMessage`]]
         The message that has been sent for handling the menu. This is the returned
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
