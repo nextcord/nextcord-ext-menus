@@ -754,7 +754,7 @@ class Menu(metaclass=_MenuMeta):
 
         Returns
         --------
-        :class:`nextcord.Message`
+        Union[:class:`nextcord.Message`, :class:`nextcord.PartialInteractionMessage`]
             The message that has been sent.
         """
         raise NotImplementedError
