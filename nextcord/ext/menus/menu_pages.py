@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 import nextcord
 from nextcord.ext import commands
@@ -110,7 +110,7 @@ class MenuPagesBase(Menu):
 
     async def send_initial_message(
         self, ctx: commands.Context, channel: nextcord.abc.Messageable
-    ) -> nextcord.Message:
+    ) -> Union[nextcord.Message, nextcord.PartialInteractionMessage]:
         """|coro|
 
         The default implementation of :meth:`Menu.send_initial_message`
@@ -128,7 +128,11 @@ class MenuPagesBase(Menu):
         # if there is an interaction, send an interaction response
         if self.interaction is not None:
             message = await self.interaction.send(ephemeral=self.ephemeral, **kwargs)
-            return message or await self.interaction.original_message()
+            # if we are adding reactions, we need the full interaction message
+            if isinstance(message, nextcord.PartialInteractionMessage) and self.buttons:
+                return await self.interaction.original_message()
+            # if we are only adding view buttons, we can return a PartialInteractionMessage or WebhookMessage
+            return message
         # otherwise, send the message using the channel
         return await channel.send(**kwargs)
 
