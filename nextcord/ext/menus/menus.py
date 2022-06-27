@@ -252,11 +252,12 @@ class Menu(metaclass=_MenuMeta):
     bot: Optional[:class:`commands.Bot`]
         The bot that is running this pagination session or ``None`` if it hasn't
         been started yet.
-    message: Optional[:class:`nextcord.Message`]
+    message: Optional[Union[:class:`nextcord.Message`, :class:`nextcord.PartialInteractionMessage`]]
         The message that has been sent for handling the menu. This is the returned
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
-        message you want to attach a menu to.
+        message you want to attach a menu to. When using reaction buttons, the
+        message must be an instance of a :class:`nextcord.Message`.
     ephemeral: :class:`bool`
         Whether to make the response ephemeral when using an interaction response.
         Note: Ephemeral messages do not support reactions.
@@ -269,7 +270,7 @@ class Menu(metaclass=_MenuMeta):
         delete_message_after: bool = False,
         clear_reactions_after: bool = False,
         check_embeds: bool = False,
-        message: Optional[nextcord.Message] = None,
+        message: Optional[Union[nextcord.Message, nextcord.PartialInteractionMessage]] = None,
     ):
 
         self.timeout = timeout
@@ -345,7 +346,9 @@ class Menu(metaclass=_MenuMeta):
             if self.__tasks:
 
                 async def wrapped():
-                    assert self.message is not None
+                    assert isinstance(
+                        self.message, nextcord.Message
+                    ), "Message must be a nextcord.Message to add reactions"
                     # Add the reaction
                     await self.message.add_reaction(button.emoji)
                     # Update the cache to have the value
@@ -394,7 +397,9 @@ class Menu(metaclass=_MenuMeta):
             if self.__tasks:
 
                 async def wrapped():
-                    assert self.message is not None
+                    assert isinstance(
+                        self.message, nextcord.Message
+                    ), "Message must be a nextcord.Message to remove reactions"
                     # Remove the reaction from being processable
                     # Removing it from the cache first makes it so the check
                     # doesn't get triggered.
@@ -704,6 +709,9 @@ class Menu(metaclass=_MenuMeta):
 
             async def add_reactions_task():
                 for emoji in self.buttons:
+                    assert isinstance(
+                        msg, nextcord.Message
+                    ), "Message must be a nextcord.Message to add reactions"
                     await msg.add_reaction(emoji)
 
             self.__tasks.append(self.bot.loop.create_task(add_reactions_task()))
@@ -727,12 +735,17 @@ class Menu(metaclass=_MenuMeta):
 
     async def send_initial_message(
         self, ctx: Optional[commands.Context], channel: Optional[nextcord.abc.Messageable]
-    ) -> nextcord.Message:
+    ) -> Union[nextcord.Message, nextcord.PartialInteractionMessage]:
         """|coro|
 
         Sends the initial message for the menu session.
 
         This is internally assigned to the :attr:`message` attribute.
+
+        A :class:`~nextcord.Message` or a
+        :class:`~nextcord.PartialInteractionMessage` object must be
+        returned. When using reaction buttons, the message must be
+        an instance of a :class:`nextcord.Message`.
 
         Subclasses must implement this if they don't set the
         :attr:`message` attribute themselves before starting the
@@ -747,7 +760,7 @@ class Menu(metaclass=_MenuMeta):
 
         Returns
         --------
-        :class:`nextcord.Message`
+        Union[:class:`nextcord.Message`, :class:`nextcord.PartialInteractionMessage`]
             The message that has been sent.
         """
         raise NotImplementedError
@@ -767,7 +780,9 @@ class Menu(metaclass=_MenuMeta):
                 except AttributeError:
                     pass
                 finally:
-                    assert self.message is not None, "Cannot remove reactions without a message."
+                    assert isinstance(
+                        self.message, nextcord.Message
+                    ), "Message must be a nextcord.Message to remove reactions"
                     await self.message.clear_reactions()
                 return
 
@@ -780,7 +795,9 @@ class Menu(metaclass=_MenuMeta):
 
             for reaction in reactions:
                 try:
-                    assert self.message is not None, "Cannot remove reactions without a message."
+                    assert isinstance(
+                        self.message, nextcord.Message
+                    ), "Message must be a nextcord.Message to remove reactions"
                     await self.message.remove_reaction(reaction, self.__me)
                 except nextcord.HTTPException:
                     continue
@@ -820,7 +837,7 @@ class ButtonMenu(Menu, nextcord.ui.View):
     bot: Optional[:class:`commands.Bot`]
         The bot that is running this pagination session or ``None`` if it hasn't
         been started yet.
-    message: Optional[:class:`nextcord.Message`]
+    message: Optional[Union[:class:`nextcord.Message`, :class:`nextcord.PartialInteractionMessage`]]
         The message that has been sent for handling the menu. This is the returned
         message of :meth:`send_initial_message`. You can set it in order to avoid
         calling :meth:`send_initial_message`\, if for example you have a pre-existing
