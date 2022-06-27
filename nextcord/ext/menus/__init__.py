@@ -6,4 +6,4 @@ from .page_source import *
 from .utils import *
 
 # Needed for the setup.py script
-__version__ = "1.5.3"
+__version__ = "1.5.4"
