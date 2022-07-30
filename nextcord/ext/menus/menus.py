@@ -469,12 +469,13 @@ class Menu(metaclass=_MenuMeta):
         permissions: Permissions,
     ):
         is_thread = isinstance(channel, nextcord.Thread)
-        if is_thread and not permissions.send_messages_in_threads:
-            raise CannotSendMessages()
-        elif not is_thread and not permissions.send_messages:
+        if ctx is not None and (
+            (is_thread and not permissions.send_messages_in_threads)
+            or (not is_thread and not permissions.send_messages)
+        ):
             raise CannotSendMessages()
 
-        if self.check_embeds and not permissions.embed_links:
+        if ctx is not None and self.check_embeds and not permissions.embed_links:
             raise CannotEmbedLinks()
 
         self._can_remove_reactions = permissions.manage_messages
