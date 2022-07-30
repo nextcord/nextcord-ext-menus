@@ -475,7 +475,7 @@ class Menu(metaclass=_MenuMeta):
         ):
             raise CannotSendMessages()
 
-        if self.check_embeds and not permissions.embed_links:
+        if ctx is not None and self.check_embeds and not permissions.embed_links:
             raise CannotEmbedLinks()
 
         self._can_remove_reactions = permissions.manage_messages
