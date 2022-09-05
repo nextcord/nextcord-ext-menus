@@ -501,7 +501,7 @@ class Menu(metaclass=_MenuMeta):
         :class:`bool`
             Whether the payload should be processed.
         """
-        if self.message is None:
+        if not isinstance(self.message, nextcord.Message):
             return False
         if payload.message_id != self.message.id:
             return False
