@@ -142,7 +142,6 @@ GroupByEntry
 .. attributetable:: GroupByEntry
 
 .. autoclass:: GroupByEntry
-    :members:
 
 AsyncIteratorPageSource
 ~~~~~~~~~~~~~~~~~~~~~~~
