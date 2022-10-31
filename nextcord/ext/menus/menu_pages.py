@@ -126,7 +126,8 @@ class MenuPagesBase(Menu):
         if not self._source.is_paginating():
             await self.clear()
         # if there is an interaction, send an interaction response
-        if self.interaction is not None:
+        # unless the user has specified a different channel than the interaction channel
+        if self.interaction is not None and channel == self.interaction.channel:
             message = await self.interaction.send(ephemeral=self.ephemeral, **kwargs)
             # if we are adding reactions, we need the full interaction message
             if isinstance(message, nextcord.PartialInteractionMessage) and self.buttons:
