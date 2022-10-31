@@ -59,7 +59,7 @@ def requirements():
 
 extras_require = {
     "docs": [
-        "sphinx>=5.0.0",
+        "sphinx",
         "sphinxcontrib_trio",
         "sphinx-book-theme==0.3.3",
     ],
