@@ -22,12 +22,12 @@ div#site-navigation div.navbar_extra_footer {
     font-size: 0.8em;
 }
 
-.topbar-main {
+.header-article__right {
     opacity: 0;
     transition: 0.1s ease-in;
 }
 
-.topbar .topbar-main a.dark-mode-button {
+.header-article__right a.dark-mode-button {
     height: auto;
     float: right;
 }

@@ -61,7 +61,7 @@ extras_require = {
     "docs": [
         "sphinx",
         "sphinxcontrib_trio",
-        "sphinx-book-theme",
+        "sphinx-book-theme==0.3.3",
     ],
 }
 
