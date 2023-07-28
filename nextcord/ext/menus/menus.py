@@ -74,7 +74,6 @@ class Button:
         position: Optional[Position] = None,
         lock: Optional[bool] = True,
     ):
-
         self.emoji = _cast_emoji(emoji)
         self.action = action
         self.skip_if = skip_if
@@ -272,7 +271,6 @@ class Menu(metaclass=_MenuMeta):
         check_embeds: bool = False,
         message: Optional[Union[nextcord.Message, nextcord.PartialInteractionMessage]] = None,
     ):
-
         self.timeout = timeout
         self.delete_message_after = delete_message_after
         self.clear_reactions_after = clear_reactions_after
