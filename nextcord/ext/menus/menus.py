@@ -689,7 +689,11 @@ class Menu(metaclass=_MenuMeta):
         else:
             raise ValueError("ctx or interaction must be set.")
         me: Union[Member, ClientUser] = channel.guild.me if hasattr(channel, "guild") else self.bot.user  # type: ignore
-        permissions = channel.permissions_for(me)  # type: ignore
+        permissions = Permissions.all()
+        if interaction is not None:
+            permissions = interaction.app_permissions
+        elif hasattr(channel, "permissions_for"):
+            permissions = channel.permissions_for(me)  # type: ignore
         self.__me = nextcord.Object(id=me.id)
         self._verify_permissions(ctx, channel, permissions)
         self._event.clear()
