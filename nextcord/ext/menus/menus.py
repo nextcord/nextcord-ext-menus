@@ -126,8 +126,7 @@ class Button:
     def __call__(self, menu: "Menu", payload: nextcord.RawReactionActionEvent):
         if self.skip_if is not None and self.skip_if(menu):
 
-            async def dummy():
-                ...
+            async def dummy(): ...
 
             return dummy()
         return self._action(menu, payload)
